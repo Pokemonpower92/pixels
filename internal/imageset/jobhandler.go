@@ -36,5 +36,24 @@ func (jh *JobHandler) HandleJob(job *Job) {
 	if err != nil {
 		jh.l.Printf("Failed to get imageset from cache: %s", err)
 	}
-	jh.l.Printf("Got imageset from cache: %v", im)
+
+	if im == nil {
+		jh.l.Printf("Imageset not found in cache, generating it")
+
+		g := NewGenerator(jh.l, job)
+		im, err := g.Generate()
+		if err != nil {
+			jh.l.Printf("Failed to generate imageset: %s", err)
+		}
+
+		jh.l.Printf("Generated imageset: %v", im)
+
+		err = jh.cache.SetImageSet(im)
+		if err != nil {
+			jh.l.Printf("Failed to set imageset in cache: %s", err)
+		}
+
+	} else {
+		jh.l.Printf("Got imageset from cache: %v", im)
+	}
 }

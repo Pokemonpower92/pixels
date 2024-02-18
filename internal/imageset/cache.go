@@ -40,3 +40,16 @@ func (c *Cache) GetImageSet(id string) (*ImageSet, error) {
 
 	return &im, nil
 }
+
+func (c *Cache) SetImageSet(im *ImageSet) error {
+	b, err := json.Marshal(im)
+	if err != nil {
+		return err
+	}
+	err = c.conn.Set(im.ID, string(b), 0).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
