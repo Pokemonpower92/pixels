@@ -1,5 +1,16 @@
 package config
 
+import (
+	"os"
+	"strconv"
+	"sync"
+)
+
+var (
+	once sync.Once
+	env  map[string]string
+)
+
 type QueueConfig struct {
 	Name       string
 	Durable    bool
@@ -28,7 +39,7 @@ func NewConsumerConfig() *ConsumerConfig {
 		Args:       nil,
 	}
 	rmqc := RabbitMQConfig{
-		URI: "amqp://guest:guest@localhost:5672/",
+		URI: os.Getenv("RABBITMQ_URI"),
 	}
 
 	return &ConsumerConfig{
@@ -48,12 +59,33 @@ type CacheConfig struct {
 }
 
 func NewCacheConfig() *CacheConfig {
-	rc := RedisConfig{
-		URI:      "localhost:6379",
-		Password: "",
-		DB:       0,
+	db, err := strconv.Atoi(os.Getenv("REDIS_DB"))
+	if err != nil {
+		panic("Invalid REDIS_DB value")
 	}
+
+	rc := RedisConfig{
+		URI:      os.Getenv("REDIS_URI"),
+		Password: os.Getenv("REDIS_PASSWORD"),
+		DB:       db,
+	}
+
 	return &CacheConfig{
 		RedisConfig: rc,
+	}
+}
+
+type S3Config struct {
+	Region          string
+	Bucket          string
+	AccessKeyID     string
+	SecretAccessKey string
+}
+
+func NewS3Config() *S3Config {
+	return &S3Config{
+		Region:          os.Getenv("S3_REGION"),
+		AccessKeyID:     os.Getenv("S3_ACCESS_KEY_ID"),
+		SecretAccessKey: os.Getenv("S3_SECRET_ACCESS_KEY"),
 	}
 }

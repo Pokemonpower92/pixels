@@ -1,16 +1,20 @@
 package imageset
 
-import "log"
+import (
+	"log"
+)
 
 type Generator struct {
-	l   *log.Logger
-	job *Job
+	l     *log.Logger
+	job   *Job
+	store *S3Store
 }
 
 func NewGenerator(l *log.Logger, job *Job) *Generator {
 	return &Generator{
-		l:   l,
-		job: job,
+		l:     l,
+		job:   job,
+		store: NewS3Store(job.Path),
 	}
 }
 
