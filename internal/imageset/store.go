@@ -43,6 +43,7 @@ func NewS3Store(bucket string) *S3Store {
 	return &S3Store{
 		Bucket: bucket,
 		client: *client,
+		l:      log.New(log.Writer(), "s3store ", log.LstdFlags),
 	}
 }
 
@@ -51,30 +52,33 @@ func (s *S3Store) GetImageSet() ([]*image.YCbCr, error) {
 		Bucket: aws.String(s.Bucket),
 	})
 	if err != nil {
-		log.Fatal(err)
+		s.l.Printf("Failed to list objects in bucket: %s: %s", s.Bucket, err)
 	}
 
-	log.Println("Images in the bucket:")
+	s.l.Printf("Found %d images in bucket %s", len(output.Contents), s.Bucket)
+
 	var images []*image.YCbCr
 	for _, object := range output.Contents {
-		log.Printf("key=%s size=%d", aws.ToString(object.Key), object.Size)
-		// Load the image and append it to the images slice
 		img, err := s.client.GetObject(context.TODO(), &s3.GetObjectInput{
 			Bucket: aws.String(s.Bucket),
 			Key:    object.Key,
 		})
 		if err != nil {
+			s.l.Printf("Failed to get image: %s", err)
 			return nil, err
 		}
-		// Decode the image
+
 		decodedImage, _, err := image.Decode(img.Body)
 		if err != nil {
+			s.l.Printf("Failed to decode image: %s", err)
 			return nil, err
 		}
-		// Convert the image to a YCbCr image
-		rgbaImage := decodedImage.(*image.YCbCr)
-		images = append(images, rgbaImage)
+
+		YCbCrImage := decodedImage.(*image.YCbCr)
+		images = append(images, YCbCrImage)
 	}
+
+	s.l.Printf("Loaded %d images", len(images))
 
 	return images, nil
 }

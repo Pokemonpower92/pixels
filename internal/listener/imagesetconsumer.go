@@ -15,11 +15,11 @@ type ImageSetConsumer struct {
 	JobHandler *imageset.JobHandler
 }
 
-func NewImageSetConsumer(l *log.Logger) *ImageSetConsumer {
+func NewImageSetConsumer() *ImageSetConsumer {
 	return &ImageSetConsumer{
-		l:          l,
+		l:          log.New(log.Writer(), "imagesetconsumer ", log.LstdFlags),
 		config:     config.NewConsumerConfig(),
-		JobHandler: imageset.NewJobHandler(l),
+		JobHandler: imageset.NewJobHandler(),
 	}
 }
 

@@ -13,7 +13,7 @@ type Cache struct {
 	conn *redis.Client
 }
 
-func NewCache(l *log.Logger) *Cache {
+func NewCache() *Cache {
 	cc := config.NewCacheConfig()
 	conn := redis.NewClient(&redis.Options{
 		Addr:     cc.RedisConfig.URI,
@@ -22,7 +22,7 @@ func NewCache(l *log.Logger) *Cache {
 	})
 
 	return &Cache{
-		l:    l,
+		l:    log.New(log.Writer(), "cache ", log.LstdFlags),
 		conn: conn,
 	}
 }

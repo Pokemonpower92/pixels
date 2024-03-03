@@ -5,16 +5,16 @@ import (
 )
 
 type Job struct {
-	ImagesetID string `json:"imageset_id"`
-	BucketName string `json:"bucket_name"`
-	Path       string `json:"path"`
+	ImagesetID  string `json:"imageset_id"`
+	BucketName  string `json:"bucket_name"`
+	Description string `json:"description"`
 }
 
 func NewJob(jobJson map[string]interface{}) *Job {
 	return &Job{
-		ImagesetID: jobJson["imageset_id"].(string),
-		BucketName: jobJson["bucket_name"].(string),
-		Path:       jobJson["path"].(string),
+		ImagesetID:  jobJson["imageset_id"].(string),
+		BucketName:  jobJson["bucket_name"].(string),
+		Description: jobJson["description"].(string),
 	}
 }
 
@@ -23,10 +23,10 @@ type JobHandler struct {
 	cache *Cache
 }
 
-func NewJobHandler(l *log.Logger) *JobHandler {
+func NewJobHandler() *JobHandler {
 	return &JobHandler{
-		l:     l,
-		cache: NewCache(l),
+		l:     log.New(log.Writer(), "jobhandler ", log.LstdFlags),
+		cache: NewCache(),
 	}
 }
 
@@ -40,13 +40,13 @@ func (jh *JobHandler) HandleJob(job *Job) {
 	if im == nil {
 		jh.l.Printf("Imageset not found in cache, generating it")
 
-		g := NewGenerator(jh.l, job)
+		g := NewGenerator(job)
 		im, err := g.Generate()
 		if err != nil {
 			jh.l.Printf("Failed to generate imageset: %s", err)
 		}
 
-		jh.l.Printf("Generated imageset: %v", im)
+		jh.l.Printf("Generated imageset: %v", im.Name)
 
 		err = jh.cache.SetImageSet(im)
 		if err != nil {
