@@ -33,6 +33,7 @@ func NewS3Store(bucket string) *S3Store {
 			conf.SecretAccessKey,
 			"",
 		)),
+		awsconf.WithRegion(conf.Region),
 	)
 	if err != nil {
 		log.Fatal(err)
