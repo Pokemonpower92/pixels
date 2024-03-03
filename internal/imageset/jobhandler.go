@@ -54,6 +54,6 @@ func (jh *JobHandler) HandleJob(job *Job) {
 		}
 
 	} else {
-		jh.l.Printf("Got imageset from cache: %v", im)
+		jh.l.Printf("Got imageset from cache: %v", im.Name)
 	}
 }
