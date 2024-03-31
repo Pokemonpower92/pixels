@@ -2,6 +2,7 @@ package listener
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/pokemonpower92/imagesetservice/config"
@@ -24,7 +25,14 @@ func NewImageSetConsumer() *ImageSetConsumer {
 }
 
 func (isc *ImageSetConsumer) Consume() {
-	conn, err := amqp.Dial(isc.config.RabbitMQConfig.URI)
+	connString := fmt.Sprintf(
+		"amqp://%s:%s@%s:%s/",
+		isc.config.RabbitMQConfig.User,
+		isc.config.RabbitMQConfig.Password,
+		isc.config.RabbitMQConfig.Host,
+		isc.config.RabbitMQConfig.Port,
+	)
+	conn, err := amqp.Dial(connString)
 	if err != nil {
 		isc.l.Fatalf("Failed to connect to RabbitMQ: %s", err)
 	}

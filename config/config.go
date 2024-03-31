@@ -4,6 +4,8 @@ import (
 	"os"
 	"strconv"
 	"sync"
+
+	"github.com/pokemonpower92/collagecommon/db"
 )
 
 var (
@@ -21,7 +23,10 @@ type QueueConfig struct {
 }
 
 type RabbitMQConfig struct {
-	URI string
+	Host     string
+	Port     string
+	User     string
+	Password string
 }
 
 type ConsumerConfig struct {
@@ -39,7 +44,10 @@ func NewConsumerConfig() *ConsumerConfig {
 		Args:       nil,
 	}
 	rmqc := RabbitMQConfig{
-		URI: os.Getenv("RABBITMQ_URI"),
+		Host:     os.Getenv("RABBITMQ_HOST"),
+		Port:     os.Getenv("RABBITMQ_PORT"),
+		User:     os.Getenv("RABBITMQ_USER"),
+		Password: os.Getenv("RABBITMQ_PASSWORD"),
 	}
 
 	return &ConsumerConfig{
@@ -49,8 +57,10 @@ func NewConsumerConfig() *ConsumerConfig {
 }
 
 type RedisConfig struct {
-	URI      string
+	Host     string
+	User     string
 	Password string
+	Port     string
 	DB       int
 }
 
@@ -65,8 +75,10 @@ func NewCacheConfig() *CacheConfig {
 	}
 
 	rc := RedisConfig{
-		URI:      os.Getenv("REDIS_URI"),
+		Host:     os.Getenv("REDIS_HOST"),
+		User:     os.Getenv("REDIS_USER"),
 		Password: os.Getenv("REDIS_PASSWORD"),
+		Port:     os.Getenv("REDIS_PORT"),
 		DB:       db,
 	}
 
@@ -87,5 +99,15 @@ func NewS3Config() *S3Config {
 		Region:          os.Getenv("S3_REGION"),
 		AccessKeyID:     os.Getenv("S3_ACCESS_KEY_ID"),
 		SecretAccessKey: os.Getenv("S3_SECRET_ACCESS_KEY"),
+	}
+}
+
+func NewISDBConfig() db.ISDBConfig {
+	return db.ISDBConfig{
+		Host:     os.Getenv("POSTGRES_HOST"),
+		User:     os.Getenv("POSTGRES_USER"),
+		Password: os.Getenv("POSTGRES_PASSWORD"),
+		Port:     os.Getenv("POSTGRES_PORT"),
+		DbName:   os.Getenv("POSTGRES_DB"),
 	}
 }
