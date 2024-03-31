@@ -3,21 +3,19 @@ package imageset
 import (
 	"image"
 	"image/color"
-	"image/draw"
 	"log"
+	"strconv"
+
+	"github.com/pokemonpower92/collagecommon/types"
 )
 
-func calculateAverageColors(images []*image.YCbCr) []color.RGBA {
+func calculateAverageColors(images []*image.RGBA) []*color.RGBA {
 	l := log.New(log.Writer(), "averageColor ", log.LstdFlags)
 	l.Println("Calculating average colors.")
 
-	var averageColors []color.RGBA
+	var averageColors []*color.RGBA
 	for _, img := range images {
-		b := img.Bounds()
-		m := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
-		draw.Draw(m, m.Bounds(), img, b.Min, draw.Src)
-
-		bounds := m.Bounds()
+		bounds := img.Bounds()
 		width := bounds.Dx()
 		height := bounds.Dy()
 
@@ -27,7 +25,7 @@ func calculateAverageColors(images []*image.YCbCr) []color.RGBA {
 		// Iterate through all pixels to calculate the sum of color values
 		for y := 0; y < height; y++ {
 			for x := 0; x < width; x++ {
-				pixelColor := m.At(x, y).(color.RGBA)
+				pixelColor := img.At(x, y).(color.RGBA)
 				totalR += uint32(pixelColor.R)
 				totalG += uint32(pixelColor.G)
 				totalB += uint32(pixelColor.B)
@@ -45,7 +43,7 @@ func calculateAverageColors(images []*image.YCbCr) []color.RGBA {
 		// Create the average color as a color.RGBA struct
 		averageColor := color.RGBA{R: uint8(avgR), G: uint8(avgG), B: uint8(avgB), A: uint8(avgA)}
 
-		averageColors = append(averageColors, averageColor)
+		averageColors = append(averageColors, &averageColor)
 	}
 
 	l.Println("Average colors calculated.")
@@ -67,7 +65,7 @@ func NewGenerator(job *Job) *Generator {
 	}
 }
 
-func (g *Generator) Generate() (*ImageSet, error) {
+func (g *Generator) Generate() (*types.ImageSet, error) {
 	g.l.Printf("Generating imageset from job: %v", g.job)
 
 	images, err := g.store.GetImageSet()
@@ -76,8 +74,14 @@ func (g *Generator) Generate() (*ImageSet, error) {
 		return nil, err
 	}
 
-	im := &ImageSet{
-		ID:            g.job.ImagesetID,
+	imagesetID, err := strconv.Atoi(g.job.ImagesetID)
+	if err != nil {
+		g.l.Printf("Failed to convert ImagesetID to int: %s", err)
+		return nil, err
+	}
+
+	im := &types.ImageSet{
+		ID:            imagesetID,
 		Name:          g.job.BucketName,
 		Description:   g.job.Description,
 		AverageColors: calculateAverageColors(images),

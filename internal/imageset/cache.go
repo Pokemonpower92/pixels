@@ -2,9 +2,12 @@ package imageset
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/go-redis/redis"
+	"github.com/pokemonpower92/collagecommon/types"
 	"github.com/pokemonpower92/imagesetservice/config"
 )
 
@@ -15,8 +18,9 @@ type Cache struct {
 
 func NewCache() *Cache {
 	cc := config.NewCacheConfig()
+	connString := fmt.Sprintf("%s:%s", cc.RedisConfig.Host, cc.RedisConfig.Port)
 	conn := redis.NewClient(&redis.Options{
-		Addr:     cc.RedisConfig.URI,
+		Addr:     connString,
 		Password: cc.RedisConfig.Password,
 		DB:       cc.RedisConfig.DB,
 	})
@@ -27,8 +31,8 @@ func NewCache() *Cache {
 	}
 }
 
-func (c *Cache) GetImageSet(id string) (*ImageSet, error) {
-	val, err := c.conn.Get(id).Result()
+func (c *Cache) GetImageSet(key string) (*ImageSet, error) {
+	val, err := c.conn.Get(key).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -41,12 +45,14 @@ func (c *Cache) GetImageSet(id string) (*ImageSet, error) {
 	return &im, nil
 }
 
-func (c *Cache) SetImageSet(im *ImageSet) error {
+func (c *Cache) SetImageSet(im *types.ImageSet) error {
 	b, err := json.Marshal(im)
 	if err != nil {
 		return err
 	}
-	err = c.conn.Set(im.ID, string(b), 0).Err()
+
+	key := strconv.Itoa(im.ID)
+	err = c.conn.Set(key, string(b), 0).Err()
 	if err != nil {
 		return err
 	}

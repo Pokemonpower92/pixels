@@ -3,6 +3,7 @@ package imageset
 import (
 	"context"
 	"image"
+	"image/draw"
 	_ "image/jpeg"
 	"log"
 
@@ -48,7 +49,7 @@ func NewS3Store(bucket string) *S3Store {
 	}
 }
 
-func (s *S3Store) GetImageSet() ([]*image.YCbCr, error) {
+func (s *S3Store) GetImageSet() ([]*image.RGBA, error) {
 	output, err := s.client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket: aws.String(s.Bucket),
 	})
@@ -58,7 +59,7 @@ func (s *S3Store) GetImageSet() ([]*image.YCbCr, error) {
 
 	s.l.Printf("Found %d images in bucket %s", len(output.Contents), s.Bucket)
 
-	var images []*image.YCbCr
+	var images []*image.RGBA
 	for _, object := range output.Contents {
 		img, err := s.client.GetObject(context.TODO(), &s3.GetObjectInput{
 			Bucket: aws.String(s.Bucket),
@@ -76,7 +77,13 @@ func (s *S3Store) GetImageSet() ([]*image.YCbCr, error) {
 		}
 
 		YCbCrImage := decodedImage.(*image.YCbCr)
-		images = append(images, YCbCrImage)
+
+		// Convert YCbCr image to RGBA
+		b := YCbCrImage.Bounds()
+		RGBAImage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+		draw.Draw(RGBAImage, RGBAImage.Bounds(), YCbCrImage, b.Min, draw.Src)
+
+		images = append(images, RGBAImage)
 	}
 
 	s.l.Printf("Loaded %d images", len(images))

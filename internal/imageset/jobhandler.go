@@ -2,6 +2,9 @@ package imageset
 
 import (
 	"log"
+
+	"github.com/pokemonpower92/collagecommon/db"
+	"github.com/pokemonpower92/imagesetservice/config"
 )
 
 type Job struct {
@@ -21,12 +24,23 @@ func NewJob(jobJson map[string]interface{}) *Job {
 type JobHandler struct {
 	l     *log.Logger
 	cache *Cache
+	db    *db.ImageSetDB
 }
 
 func NewJobHandler() *JobHandler {
+	log := log.New(log.Writer(), "jobhandler ", log.LstdFlags)
+
+	db, err := db.NewImageSetDB(config.NewISDBConfig())
+	if err != nil {
+		log.Fatalf("Failed to create ImageSetDB: %s", err)
+	}
+
+	cache := NewCache()
+
 	return &JobHandler{
-		l:     log.New(log.Writer(), "jobhandler ", log.LstdFlags),
-		cache: NewCache(),
+		l:     log,
+		cache: cache,
+		db:    db,
 	}
 }
 
@@ -57,3 +71,5 @@ func (jh *JobHandler) HandleJob(job *Job) {
 		jh.l.Printf("Got imageset from cache: %v", im.Name)
 	}
 }
+
+// convert Id to int
