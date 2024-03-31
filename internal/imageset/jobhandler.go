@@ -2,6 +2,7 @@ package imageset
 
 import (
 	"log"
+	"strconv"
 
 	"github.com/pokemonpower92/collagecommon/db"
 	"github.com/pokemonpower92/imagesetservice/config"
@@ -46,30 +47,41 @@ func NewJobHandler() *JobHandler {
 
 func (jh *JobHandler) HandleJob(job *Job) {
 	jh.l.Printf("Handling job: %v", job)
-	im, err := jh.cache.GetImageSet(job.ImagesetID)
+
+	intId, err := strconv.Atoi(job.ImagesetID)
 	if err != nil {
-		jh.l.Printf("Failed to get imageset from cache: %s", err)
+		jh.l.Printf("Failed to convert imageset id to int: %s", err)
 	}
 
-	if im == nil {
-		jh.l.Printf("Imageset not found in cache, generating it")
+	is, err := jh.db.GetImageSet(intId)
+	if err != nil {
+		jh.l.Printf("Failed to get imageset from database: %s", err)
+	}
 
+	if is == nil {
 		g := NewGenerator(job)
-		im, err := g.Generate()
+		is, err := g.Generate()
 		if err != nil {
 			jh.l.Printf("Failed to generate imageset: %s", err)
 		}
 
-		jh.l.Printf("Generated imageset: %v", im.Name)
+		jh.l.Printf("Generated imageset: %v", is.Name)
 
-		err = jh.cache.SetImageSet(im)
+		err = jh.db.CreateImageSet(is)
 		if err != nil {
-			jh.l.Printf("Failed to set imageset in cache: %s", err)
+			jh.l.Printf("Failed to add new imageset to db: %s", err)
+		} else {
+			jh.l.Printf("Added imageset to db: %v", is.Name)
+		}
+
+		err = jh.db.SetAverageColors(intId, is.AverageColors)
+		if err != nil {
+			jh.l.Printf("Failed to set average colors: %s", err)
+		} else {
+			jh.l.Printf("Set average colors for imageset: %v", is.Name)
 		}
 
 	} else {
-		jh.l.Printf("Got imageset from cache: %v", im.Name)
+		jh.l.Printf("Got imageset from DB: %v", is.Name)
 	}
 }
-
-// convert Id to int

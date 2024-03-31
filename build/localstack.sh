@@ -5,7 +5,7 @@ docker run -d \
   --name collage_db \
   -p 5432:5432 \
   -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=posgres \
+  -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_DB=collage \
   -v db:/var/lib/postgresql/data \
   --network collage \
@@ -31,4 +31,5 @@ docker run -d \
   rabbitmq:3-management
 
 # Create the imageset service container
+docker build -t imagesetservice:latest -f ./build/Dockerfile .
 docker run --env-file ./.env --network collage imagesetservice:latest
