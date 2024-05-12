@@ -14,65 +14,83 @@ import (
 	"github.com/pokemonpower92/imagesetservice/config"
 )
 
+// Store is an interface that defines the methods for retrieving image sets.
 type Store interface {
 	GetImageSet() ([]*image.RGBA, error)
 }
 
-type S3Store struct {
-	Bucket string
-	l      *log.Logger
-	client s3.Client
+type S3Api interface {
+	ListObjectsV2(
+		ctx context.Context,
+		params *s3.ListObjectsV2Input,
+		optFns ...func(*s3.Options),
+	) (*s3.ListObjectsV2Output, error)
+	GetObject(
+		ctx context.Context,
+		params *s3.GetObjectInput,
+		optFns ...func(*s3.Options),
+	) (*s3.GetObjectOutput, error)
 }
 
-func NewS3Store(bucket string) *S3Store {
-	conf := config.NewS3Config()
+// S3Store is a struct that implements the Store interface and provides methods for retrieving image sets from Amazon S3.
+type S3Store struct {
+	Bucket string
+	logger *log.Logger
+	api    S3Api
+}
 
-	cfg, err := awsconf.LoadDefaultConfig(
+// NewS3Store creates a new S3Store instance with the specified bucket name.
+func NewS3Store(bucket string) *S3Store {
+	s3Config := config.NewS3Config()
+
+	awsConfig, err := awsconf.LoadDefaultConfig(
 		context.TODO(),
 		awsconf.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			conf.AccessKeyID,
-			conf.SecretAccessKey,
+			s3Config.AccessKeyID,
+			s3Config.SecretAccessKey,
 			"",
 		)),
-		awsconf.WithRegion(conf.Region),
+		awsconf.WithRegion(s3Config.Region),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Create an Amazon S3 service client
-	client := s3.NewFromConfig(cfg)
+	client := s3.NewFromConfig(awsConfig)
 	return &S3Store{
 		Bucket: bucket,
-		client: *client,
-		l:      log.New(log.Writer(), "s3store ", log.LstdFlags),
+		api:    client,
+		logger: log.New(log.Writer(), "s3store ", log.LstdFlags),
 	}
 }
 
-func (s *S3Store) GetImageSet() ([]*image.RGBA, error) {
-	output, err := s.client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
-		Bucket: aws.String(s.Bucket),
+// GetImageSet retrieves the image set from the specified bucket in Amazon S3.
+func (store *S3Store) GetImageSet() ([]*image.RGBA, error) {
+	output, err := store.api.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+		Bucket: aws.String(store.Bucket),
 	})
 	if err != nil {
-		s.l.Printf("Failed to list objects in bucket: %s: %s", s.Bucket, err)
+		store.logger.Printf("Failed to list objects in bucket: %s: %s", store.Bucket, err)
+		return nil, err
 	}
 
-	s.l.Printf("Found %d images in bucket %s", len(output.Contents), s.Bucket)
+	store.logger.Printf("Found %d images in bucket %s", len(output.Contents), store.Bucket)
 
 	var images []*image.RGBA
 	for _, object := range output.Contents {
-		img, err := s.client.GetObject(context.TODO(), &s3.GetObjectInput{
-			Bucket: aws.String(s.Bucket),
+		imageObject, err := store.api.GetObject(context.TODO(), &s3.GetObjectInput{
+			Bucket: aws.String(store.Bucket),
 			Key:    object.Key,
 		})
 		if err != nil {
-			s.l.Printf("Failed to get image: %s", err)
+			store.logger.Printf("Failed to get image: %s", err)
 			return nil, err
 		}
 
-		decodedImage, _, err := image.Decode(img.Body)
+		decodedImage, _, err := image.Decode(imageObject.Body)
 		if err != nil {
-			s.l.Printf("Failed to decode image: %s", err)
+			store.logger.Printf("Failed to decode image: %s", err)
 			return nil, err
 		}
 
@@ -86,7 +104,7 @@ func (s *S3Store) GetImageSet() ([]*image.RGBA, error) {
 		images = append(images, RGBAImage)
 	}
 
-	s.l.Printf("Loaded %d images", len(images))
+	store.logger.Printf("Loaded %d images", len(images))
 
 	return images, nil
 }

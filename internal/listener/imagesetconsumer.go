@@ -82,7 +82,10 @@ func (isc *ImageSetConsumer) Consume() {
 			}
 
 			decodedJob := imageset.NewJob(job)
-			isc.JobHandler.HandleJob(decodedJob)
+			err = isc.JobHandler.HandleJob(decodedJob)
+			if err != nil {
+				isc.l.Printf("Job failed with error: %s", err)
+			}
 		}
 	}()
 
