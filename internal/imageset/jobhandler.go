@@ -8,12 +8,14 @@ import (
 	"github.com/pokemonpower92/imagesetservice/config"
 )
 
+// Job represents a job for processing an image set.
 type Job struct {
 	ImagesetID  string `json:"imageset_id"`
 	BucketName  string `json:"bucket_name"`
 	Description string `json:"description"`
 }
 
+// NewJob creates a new Job instance based on the provided JSON data.
 func NewJob(jobJson map[string]interface{}) *Job {
 	return &Job{
 		ImagesetID:  jobJson["imageset_id"].(string),
@@ -22,13 +24,15 @@ func NewJob(jobJson map[string]interface{}) *Job {
 	}
 }
 
+// JobHandler handles the processing of image set jobs.
 type JobHandler struct {
-	l         *log.Logger
-	cache     iCache
-	db        iDB
-	generator iGenerator
+	logger    *log.Logger
+	cache     Cache
+	db        DB
+	generator Generator
 }
 
+// NewJobHandler creates a new JobHandler instance.
 func NewJobHandler() *JobHandler {
 	log := log.New(log.Writer(), "jobhandler ", log.LstdFlags)
 
@@ -37,51 +41,59 @@ func NewJobHandler() *JobHandler {
 		log.Fatalf("Failed to create ImageSetDB: %s", err)
 	}
 
-	cache := NewCache()
+	cache := NewImageSetCache()
 
 	return &JobHandler{
-		l:     log,
-		cache: cache,
-		db:    db,
+		logger: log,
+		cache:  cache,
+		db:     db,
 	}
 }
 
-func (jh *JobHandler) HandleJob(job *Job) {
-	jh.l.Printf("Handling job: %v", job)
+// HandleJob handles the processing of a single job.
+func (jobHandler *JobHandler) HandleJob(job *Job) error {
+	jobHandler.logger.Printf("Handling job: %v", job)
 
-	intId, err := strconv.Atoi(job.ImagesetID)
+	idAsInteger, err := strconv.Atoi(job.ImagesetID)
 	if err != nil {
-		jh.l.Printf("Failed to convert imageset id to int: %s", err)
+		jobHandler.logger.Printf("Failed to convert imageset id to int: %s", err)
+		return err
 	}
 
-	is, err := jh.db.GetImageSet(intId)
+	imageSet, err := jobHandler.db.GetImageSet(idAsInteger)
 	if err != nil {
-		jh.l.Printf("Failed to get imageset from database: %s", err)
+		jobHandler.logger.Printf("Failed to get imageset from database: %s", err)
+		return err
 	}
 
-	if is == nil {
-		is, err := jh.generator.Generate(job)
+	if imageSet == nil {
+		jobHandler.generator = NewImageSetGenerator(job)
+		imageSet, err := jobHandler.generator.Generate(job)
 		if err != nil {
-			jh.l.Printf("Failed to generate imageset: %s", err)
+			jobHandler.logger.Printf("Failed to generate imageset: %s", err)
+			return err
 		}
 
-		jh.l.Printf("Generated imageset: %v", is.Name)
+		jobHandler.logger.Printf("Generated imageset: %v", imageSet.Name)
 
-		err = jh.db.CreateImageSet(is)
+		err = jobHandler.db.CreateImageSet(imageSet)
 		if err != nil {
-			jh.l.Printf("Failed to add new imageset to db: %s", err)
+			jobHandler.logger.Printf("Failed to add new imageset to db: %s", err)
+			return err
 		} else {
-			jh.l.Printf("Added imageset to db: %v", is.Name)
+			jobHandler.logger.Printf("Added imageset to db: %v", imageSet.Name)
 		}
 
-		err = jh.db.SetAverageColors(intId, is.AverageColors)
+		err = jobHandler.db.SetAverageColors(idAsInteger, imageSet.AverageColors)
 		if err != nil {
-			jh.l.Printf("Failed to set average colors: %s", err)
+			jobHandler.logger.Printf("Failed to set average colors: %s", err)
+			return err
 		} else {
-			jh.l.Printf("Set average colors for imageset: %v", is.Name)
+			jobHandler.logger.Printf("Set average colors for imageset: %v", imageSet.Name)
 		}
-
 	} else {
-		jh.l.Printf("Got imageset from DB: %v", is.Name)
+		jobHandler.logger.Printf("Got imageset from DB: %v", imageSet.Name)
 	}
+
+	return nil
 }

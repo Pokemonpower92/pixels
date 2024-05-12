@@ -64,9 +64,9 @@ func TestGenerator_Generate(t *testing.T) {
 	}
 
 	// Create a Generator instance
-	g := &Generator{
-		store: store,
-		l:     log.New(log.Writer(), "generator ", log.LstdFlags),
+	g := &ImageSetGenerator{
+		store:  store,
+		logger: log.New(log.Writer(), "generator ", log.LstdFlags),
 	}
 
 	// Generate the ImageSet

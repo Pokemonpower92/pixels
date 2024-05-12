@@ -64,26 +64,18 @@ type RedisConfig struct {
 	DB       int
 }
 
-type CacheConfig struct {
-	RedisConfig RedisConfig
-}
-
-func NewCacheConfig() *CacheConfig {
+func NewRedisConfig() *RedisConfig {
 	db, err := strconv.Atoi(os.Getenv("REDIS_DB"))
 	if err != nil {
 		panic("Invalid REDIS_DB value")
 	}
 
-	rc := RedisConfig{
+	return &RedisConfig{
 		Host:     os.Getenv("REDIS_HOST"),
 		User:     os.Getenv("REDIS_USER"),
 		Password: os.Getenv("REDIS_PASSWORD"),
 		Port:     os.Getenv("REDIS_PORT"),
 		DB:       db,
-	}
-
-	return &CacheConfig{
-		RedisConfig: rc,
 	}
 }
 

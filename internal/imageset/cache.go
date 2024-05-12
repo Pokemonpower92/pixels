@@ -11,53 +11,64 @@ import (
 	"github.com/pokemonpower92/imagesetservice/config"
 )
 
-type iCache interface {
+// Cache is an interface that defines methods for getting and setting image sets.
+type Cache interface {
 	GetImageSet(key string) (*types.ImageSet, error)
-	SetImageSet(im *types.ImageSet) error
+	SetImageSet(imageSet *types.ImageSet) error
 }
 
-type Cache struct {
-	l    *log.Logger
-	conn *redis.Client
+// ImageSetCache is a struct that implements the Cache interface.
+type ImageSetCache struct {
+	logger *log.Logger
+	client *redis.Client
 }
 
-func NewCache() *Cache {
-	cc := config.NewCacheConfig()
-	connString := fmt.Sprintf("%s:%s", cc.RedisConfig.Host, cc.RedisConfig.Port)
-	conn := redis.NewClient(&redis.Options{
-		Addr:     connString,
-		Password: cc.RedisConfig.Password,
-		DB:       cc.RedisConfig.DB,
+// NewImageSetCache creates a new instance of ImageSetCache.
+func NewImageSetCache() *ImageSetCache {
+	redisConfig := config.NewRedisConfig()
+	connectionString := fmt.Sprintf(
+		"%s:%s",
+		redisConfig.Host,
+		redisConfig.Port,
+	)
+	connection := redis.NewClient(&redis.Options{
+		Addr:     connectionString,
+		Password: redisConfig.Password,
+		DB:       redisConfig.DB,
 	})
 
-	return &Cache{
-		l:    log.New(log.Writer(), "cache ", log.LstdFlags),
-		conn: conn,
+	return &ImageSetCache{
+		logger: log.New(log.Writer(), "cache ", log.LstdFlags),
+		client: connection,
 	}
 }
 
-func (c *Cache) GetImageSet(key string) (*types.ImageSet, error) {
-	val, err := c.conn.Get(key).Result()
+// GetImageSet retrieves an image set from the cache based on the given key.
+// It returns the image set and an error if any.
+func (imageSetCache *ImageSetCache) GetImageSet(key string) (*types.ImageSet, error) {
+	imageSetJson, err := imageSetCache.client.Get(key).Result()
 	if err != nil {
 		return nil, err
 	}
-	var im types.ImageSet
-	err = json.Unmarshal([]byte(val), &im)
+	var imageSet types.ImageSet
+	err = json.Unmarshal([]byte(imageSetJson), &imageSet)
 	if err != nil {
 		return nil, err
 	}
 
-	return &im, nil
+	return &imageSet, nil
 }
 
-func (c *Cache) SetImageSet(im *types.ImageSet) error {
-	b, err := json.Marshal(im)
+// SetImageSet sets the given image set in the cache.
+// It returns an error if any.
+func (imageSetCache *ImageSetCache) SetImageSet(imageSet *types.ImageSet) error {
+	imageSetBytes, err := json.Marshal(imageSet)
 	if err != nil {
 		return err
 	}
 
-	key := strconv.Itoa(im.ID)
-	err = c.conn.Set(key, string(b), 0).Err()
+	key := strconv.Itoa(imageSet.ID)
+	err = imageSetCache.client.Set(key, string(imageSetBytes), 0).Err()
 	if err != nil {
 		return err
 	}

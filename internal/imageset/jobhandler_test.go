@@ -69,7 +69,7 @@ func TestHandleJob(t *testing.T) {
 	for _, subtest := range subtests {
 		t.Run(subtest.name, func(t *testing.T) {
 			jh := &JobHandler{
-				l: log.New(log.Writer(), "jobhandler ", log.LstdFlags),
+				logger: log.New(log.Writer(), "jobhandler ", log.LstdFlags),
 				cache: &mockCache{
 					expectedImageSet: subtest.expectedImage,
 					expectedErr:      subtest.expectedErr,
