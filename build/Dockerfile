@@ -1,13 +1,12 @@
 FROM golang:1.21.3
-
-ENV GO111MODULE=on
+WORKDIR /app
 
 EXPOSE 8080
 
-WORKDIR /app
-COPY .. .
-
+COPY go.mod go.sum ./
 RUN go mod download
+
+COPY . .
 
 RUN go build -o imagesetservice cmd/imagesetservice/main.go
 

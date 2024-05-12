@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/pokemonpower92/collagecommon/db"
+	"github.com/pokemonpower92/collagecommon/types"
 )
 
 var (
@@ -102,12 +102,12 @@ func NewS3Config() *S3Config {
 	}
 }
 
-func NewISDBConfig() db.ISDBConfig {
-	return db.ISDBConfig{
+func NewISDBConfig() types.DBConfig {
+	return types.DBConfig{
 		Host:     os.Getenv("POSTGRES_HOST"),
 		User:     os.Getenv("POSTGRES_USER"),
 		Password: os.Getenv("POSTGRES_PASSWORD"),
 		Port:     os.Getenv("POSTGRES_PORT"),
-		DbName:   os.Getenv("POSTGRES_DB"),
+		DbName:   os.Getenv("IMAGESET_DB"),
 	}
 }

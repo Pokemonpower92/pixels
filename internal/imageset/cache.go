@@ -11,6 +11,11 @@ import (
 	"github.com/pokemonpower92/imagesetservice/config"
 )
 
+type iCache interface {
+	GetImageSet(key string) (*types.ImageSet, error)
+	SetImageSet(im *types.ImageSet) error
+}
+
 type Cache struct {
 	l    *log.Logger
 	conn *redis.Client
@@ -31,12 +36,12 @@ func NewCache() *Cache {
 	}
 }
 
-func (c *Cache) GetImageSet(key string) (*ImageSet, error) {
+func (c *Cache) GetImageSet(key string) (*types.ImageSet, error) {
 	val, err := c.conn.Get(key).Result()
 	if err != nil {
 		return nil, err
 	}
-	var im ImageSet
+	var im types.ImageSet
 	err = json.Unmarshal([]byte(val), &im)
 	if err != nil {
 		return nil, err

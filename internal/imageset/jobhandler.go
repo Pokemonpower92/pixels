@@ -23,9 +23,10 @@ func NewJob(jobJson map[string]interface{}) *Job {
 }
 
 type JobHandler struct {
-	l     *log.Logger
-	cache *Cache
-	db    *db.ImageSetDB
+	l         *log.Logger
+	cache     iCache
+	db        iDB
+	generator iGenerator
 }
 
 func NewJobHandler() *JobHandler {
@@ -59,8 +60,7 @@ func (jh *JobHandler) HandleJob(job *Job) {
 	}
 
 	if is == nil {
-		g := NewGenerator(job)
-		is, err := g.Generate()
+		is, err := jh.generator.Generate(job)
 		if err != nil {
 			jh.l.Printf("Failed to generate imageset: %s", err)
 		}
