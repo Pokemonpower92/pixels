@@ -51,22 +51,24 @@ func calculateAverageColors(images []*image.RGBA) []*color.RGBA {
 	return averageColors
 }
 
+type iGenerator interface {
+	Generate(job *Job) (*types.ImageSet, error)
+}
+
 type Generator struct {
 	l     *log.Logger
-	job   *Job
-	store *S3Store
+	store Store
 }
 
 func NewGenerator(job *Job) *Generator {
 	return &Generator{
 		l:     log.New(log.Writer(), "generator ", log.LstdFlags),
-		job:   job,
 		store: NewS3Store(job.BucketName),
 	}
 }
 
-func (g *Generator) Generate() (*types.ImageSet, error) {
-	g.l.Printf("Generating imageset from job: %v", g.job)
+func (g *Generator) Generate(job *Job) (*types.ImageSet, error) {
+	g.l.Printf("Generating imageset from job: %v", job)
 
 	images, err := g.store.GetImageSet()
 	if err != nil {
@@ -74,7 +76,7 @@ func (g *Generator) Generate() (*types.ImageSet, error) {
 		return nil, err
 	}
 
-	imagesetID, err := strconv.Atoi(g.job.ImagesetID)
+	imagesetID, err := strconv.Atoi(job.ImagesetID)
 	if err != nil {
 		g.l.Printf("Failed to convert ImagesetID to int: %s", err)
 		return nil, err
@@ -82,8 +84,8 @@ func (g *Generator) Generate() (*types.ImageSet, error) {
 
 	im := &types.ImageSet{
 		ID:            imagesetID,
-		Name:          g.job.BucketName,
-		Description:   g.job.Description,
+		Name:          job.BucketName,
+		Description:   job.Description,
 		AverageColors: calculateAverageColors(images),
 	}
 	return im, nil

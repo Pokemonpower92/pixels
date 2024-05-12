@@ -15,7 +15,7 @@ import (
 )
 
 type Store interface {
-	GetImageSet() (*image.RGBA, error)
+	GetImageSet() ([]*image.RGBA, error)
 }
 
 type S3Store struct {
