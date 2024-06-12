@@ -1,4 +1,4 @@
-package imageset
+package jobhandler
 
 import (
 	"image/color"

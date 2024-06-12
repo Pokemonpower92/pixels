@@ -1,4 +1,4 @@
-package imageset
+package generator
 
 import (
 	"image"
