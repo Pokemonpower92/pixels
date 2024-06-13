@@ -1,5 +1,5 @@
 package consumer
 
 type Consumer interface {
-   Consume()
+	Consume()
 }

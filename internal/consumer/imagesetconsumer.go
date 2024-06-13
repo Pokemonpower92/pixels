@@ -6,21 +6,22 @@ import (
 	"log"
 
 	"github.com/pokemonpower92/imagesetservice/config"
-	"github.com/pokemonpower92/imagesetservice/internal/imageset"
+	"github.com/pokemonpower92/imagesetservice/internal/job"
+	"github.com/pokemonpower92/imagesetservice/internal/jobhandler"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type ImageSetConsumer struct {
 	l          *log.Logger
 	config     *config.ConsumerConfig
-	JobHandler *imageset.JobHandler
+	JobHandler *jobhandler.JobHandler
 }
 
 func NewImageSetConsumer() *ImageSetConsumer {
 	return &ImageSetConsumer{
 		l:          log.New(log.Writer(), "imagesetconsumer ", log.LstdFlags),
 		config:     config.NewConsumerConfig(),
-		JobHandler: imageset.NewJobHandler(),
+		JobHandler: jobhandler.NewJobHandler(),
 	}
 }
 
@@ -75,13 +76,13 @@ func (isc *ImageSetConsumer) Consume() {
 		for d := range msgs {
 			isc.l.Printf("Received a job: %s", d.Body)
 
-			var job map[string]interface{}
-			err := json.Unmarshal(d.Body, &job)
+			var j map[string]interface{}
+			err := json.Unmarshal(d.Body, &j)
 			if err != nil {
 				isc.l.Printf("Failed to decode job: %s", err)
 			}
 
-			decodedJob := imageset.NewJob(job)
+			decodedJob := job.NewJob(j)
 			err = isc.JobHandler.HandleJob(decodedJob)
 			if err != nil {
 				isc.l.Printf("Job failed with error: %s", err)

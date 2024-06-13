@@ -23,6 +23,6 @@ data/*
 # .go/
 
 # Output of the go command (remove the comment below to include it)
-# /bin/
+/bin/
 # /pkg/
 # /out/

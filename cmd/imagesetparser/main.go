@@ -2,11 +2,11 @@ package main
 
 import (
 	"github.com/pokemonpower92/imagesetservice/config"
-	"github.com/pokemonpower92/imagesetservice/internal/listener"
+	"github.com/pokemonpower92/imagesetservice/internal/consumer"
 )
 
 func main() {
 	config.LoadEnvironmentVariables()
-	isl := listener.NewImageSetConsumer()
-	isl.Consume()
+	isc := consumer.NewImageSetConsumer()
+	isc.Consume()
 }
