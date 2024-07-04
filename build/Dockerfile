@@ -8,6 +8,6 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o imagesetservice cmd/imagesetservice/main.go
+RUN make
 
-CMD ["./imagesetservice"]
+CMD ["./bin/imagesetparser"]

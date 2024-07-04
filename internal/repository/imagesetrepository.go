@@ -16,12 +16,12 @@ type ImageSetRepository struct {
 }
 
 func getConnectionString() string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		os.Getenv("POSTGRES_HOST"),
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_HOST"),
 		os.Getenv("POSTGRES_PORT"),
-		os.Getenv("IMAGESET_DB"),
+		os.Getenv("POSTGRES_DB"),
 	)
 }
 
