@@ -91,21 +91,3 @@ func NewS3Config() *S3Config {
 		SecretAccessKey: os.Getenv("S3_SECRET_ACCESS_KEY"),
 	}
 }
-
-type DBConfig struct {
-	Host     string
-	User     string
-	Password string
-	Port     string
-	DbName   string
-}
-
-func NewDBConfig() DBConfig {
-	return DBConfig{
-		Host:     os.Getenv("POSTGRES_HOST"),
-		User:     os.Getenv("POSTGRES_USER"),
-		Password: os.Getenv("POSTGRES_PASSWORD"),
-		Port:     os.Getenv("POSTGRES_PORT"),
-		DbName:   os.Getenv("IMAGESET_DB"),
-	}
-}
