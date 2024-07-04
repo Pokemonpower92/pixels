@@ -1,4 +1,4 @@
-package imageset
+package generator
 
 import (
 	"image"
@@ -6,7 +6,9 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/pokemonpower92/collagecommon/types"
+	"github.com/pokemonpower92/imagesetservice/internal/datastore"
+	"github.com/pokemonpower92/imagesetservice/internal/domain"
+	"github.com/pokemonpower92/imagesetservice/internal/job"
 )
 
 // calculateAverageColors calculates the average colors of a slice of images.
@@ -55,27 +57,27 @@ func calculateAverageColors(images []*image.RGBA) []*color.RGBA {
 
 // Generator is an interface for generating image sets.
 type Generator interface {
-	Generate(job *Job) (*types.ImageSet, error)
+	Generate(job *job.Job) (*domain.ImageSet, error)
 }
 
 // ImageSetGenerator is a struct that implements the Generator interface.
 type ImageSetGenerator struct {
 	logger *log.Logger
-	store  Store
+	store  datastore.Store
 }
 
 // NewImageSetGenerator creates a new ImageSetGenerator instance.
 // It takes a *Job as input and returns a pointer to ImageSetGenerator.
-func NewImageSetGenerator(job *Job) *ImageSetGenerator {
-	return &ImageSetGenerator{
-		logger: log.New(log.Writer(), "generator ", log.LstdFlags),
-		store:  NewS3Store(job.BucketName),
+func NewImageSetGenerator(job *job.Job, logger *log.Logger) ImageSetGenerator {
+	return ImageSetGenerator{
+		logger: logger,
+		store:  datastore.NewS3Store(job.BucketName),
 	}
 }
 
 // Generate generates an image set based on the provided job.
 // It takes a *Job as input and returns a pointer to types.ImageSet and an error.
-func (generator *ImageSetGenerator) Generate(job *Job) (*types.ImageSet, error) {
+func (generator ImageSetGenerator) Generate(job *job.Job) (*domain.ImageSet, error) {
 	generator.logger.Printf("Generating imageset from job: %v", job)
 
 	images, err := generator.store.GetImageSet()
@@ -90,7 +92,7 @@ func (generator *ImageSetGenerator) Generate(job *Job) (*types.ImageSet, error) 
 		return nil, err
 	}
 
-	imageSet := &types.ImageSet{
+	imageSet := &domain.ImageSet{
 		ID:            imagesetID,
 		Name:          job.BucketName,
 		Description:   job.Description,

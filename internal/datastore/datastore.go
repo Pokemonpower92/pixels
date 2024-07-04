@@ -1,4 +1,4 @@
-package imageset
+package datastore
 
 import (
 	"context"

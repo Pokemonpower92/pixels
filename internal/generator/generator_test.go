@@ -1,4 +1,4 @@
-package imageset
+package generator
 
 import (
 	"image"
@@ -6,7 +6,8 @@ import (
 	"log"
 	"testing"
 
-	"github.com/pokemonpower92/collagecommon/types"
+	"github.com/pokemonpower92/imagesetservice/internal/domain"
+	"github.com/pokemonpower92/imagesetservice/internal/job"
 )
 
 func TestCalculateAverageColors(t *testing.T) {
@@ -44,7 +45,7 @@ func TestCalculateAverageColors(t *testing.T) {
 
 func TestGenerator_Generate(t *testing.T) {
 	// Create a mock Job and Store
-	job := &Job{
+	job := &job.Job{
 		ImagesetID:  "123",
 		BucketName:  "test-bucket",
 		Description: "Test description",
@@ -76,7 +77,7 @@ func TestGenerator_Generate(t *testing.T) {
 	}
 
 	// Verify the generated ImageSet
-	expectedImageSet := &types.ImageSet{
+	expectedImageSet := &domain.ImageSet{
 		ID:            123,
 		Name:          "test-bucket",
 		Description:   "Test description",
