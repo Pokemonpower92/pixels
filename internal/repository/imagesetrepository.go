@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/pokemonpower92/imagesetservice/config"
 	"github.com/pokemonpower92/imagesetservice/internal/domain"
 )
 
@@ -15,18 +15,18 @@ type ImageSetRepository struct {
 	logger *log.Logger
 }
 
-func getConnectionString() string {
+func getConnectionString(config *config.DBConfig) string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
-		os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_HOST"),
-		os.Getenv("POSTGRES_PORT"),
-		os.Getenv("POSTGRES_DB"),
+		config.User,
+		config.Password,
+		config.Host,
+		config.Port,
+		config.DBName,
 	)
 }
 
-func NewImageSetRepository() (*ImageSetRepository, error) {
-	connString := getConnectionString()
+func NewImageSetRepository(postgresConfig *config.DBConfig) (*ImageSetRepository, error) {
+	connString := getConnectionString(postgresConfig)
 	client, err := pgxpool.Connect(
 		context.Background(),
 		connString,
