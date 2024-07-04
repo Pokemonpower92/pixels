@@ -19,6 +19,7 @@ type Store interface {
 	GetImageSet() ([]*image.RGBA, error)
 }
 
+// S3Api is an interface that defines the methods for interacting with Amazon S3.
 type S3Api interface {
 	ListObjectsV2(
 		ctx context.Context,
@@ -39,7 +40,6 @@ type S3Store struct {
 	api    S3Api
 }
 
-// NewS3Store creates a new S3Store instance with the specified bucket name.
 func NewS3Store(bucket string) *S3Store {
 	s3Config := config.NewS3Config()
 
@@ -56,7 +56,6 @@ func NewS3Store(bucket string) *S3Store {
 		log.Fatal(err)
 	}
 
-	// Create an Amazon S3 service client
 	client := s3.NewFromConfig(awsConfig)
 	return &S3Store{
 		Bucket: bucket,
@@ -65,7 +64,6 @@ func NewS3Store(bucket string) *S3Store {
 	}
 }
 
-// GetImageSet retrieves the image set from the specified bucket in Amazon S3.
 func (store *S3Store) GetImageSet() ([]*image.RGBA, error) {
 	output, err := store.api.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket: aws.String(store.Bucket),
@@ -74,7 +72,6 @@ func (store *S3Store) GetImageSet() ([]*image.RGBA, error) {
 		store.logger.Printf("Failed to list objects in bucket: %s: %s", store.Bucket, err)
 		return nil, err
 	}
-
 	store.logger.Printf("Found %d images in bucket %s", len(output.Contents), store.Bucket)
 
 	var images []*image.RGBA
@@ -96,7 +93,6 @@ func (store *S3Store) GetImageSet() ([]*image.RGBA, error) {
 
 		YCbCrImage := decodedImage.(*image.YCbCr)
 
-		// Convert YCbCr image to RGBA
 		b := YCbCrImage.Bounds()
 		RGBAImage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
 		draw.Draw(RGBAImage, RGBAImage.Bounds(), YCbCrImage, b.Min, draw.Src)

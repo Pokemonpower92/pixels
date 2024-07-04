@@ -11,7 +11,6 @@ import (
 )
 
 func TestCalculateAverageColors(t *testing.T) {
-	// Create test images
 	img1 := image.NewRGBA(image.Rect(0, 0, 2, 2))
 	img1.Set(0, 0, color.RGBA{R: 255, G: 0, B: 0, A: 255})     // Red
 	img1.Set(1, 0, color.RGBA{R: 0, G: 255, B: 0, A: 255})     // Green
@@ -26,16 +25,13 @@ func TestCalculateAverageColors(t *testing.T) {
 
 	images := []*image.RGBA{img1, img2}
 
-	// Expected average colors
 	expectedColors := []*color.RGBA{
 		{R: 127, G: 127, B: 127, A: 255}, // Gray
 		{R: 159, G: 95, B: 95, A: 255},   // Reddish
 	}
 
-	// Calculate average colors
 	averageColors := calculateAverageColors(images)
 
-	// Compare the calculated average colors with the expected colors
 	for i, c := range averageColors {
 		if c.R != expectedColors[i].R || c.G != expectedColors[i].G || c.B != expectedColors[i].B || c.A != expectedColors[i].A {
 			t.Errorf("Average color mismatch at index %d. Expected: %v, Got: %v", i, expectedColors[i], c)
@@ -44,7 +40,6 @@ func TestCalculateAverageColors(t *testing.T) {
 }
 
 func TestGenerator_Generate(t *testing.T) {
-	// Create a mock Job and Store
 	job := &job.Job{
 		ImagesetID:  "123",
 		BucketName:  "test-bucket",
@@ -53,7 +48,6 @@ func TestGenerator_Generate(t *testing.T) {
 
 	store := &MockStore{
 		GetImageSetFunc: func() ([]*image.RGBA, error) {
-			// Create a test image
 			img := image.NewRGBA(image.Rect(0, 0, 2, 2))
 			img.Set(0, 0, color.RGBA{R: 255, G: 0, B: 0, A: 255})     // Red
 			img.Set(1, 0, color.RGBA{R: 0, G: 255, B: 0, A: 255})     // Green
@@ -64,19 +58,16 @@ func TestGenerator_Generate(t *testing.T) {
 		},
 	}
 
-	// Create a Generator instance
 	g := &ImageSetGenerator{
 		store:  store,
 		logger: log.New(log.Writer(), "generator ", log.LstdFlags),
 	}
 
-	// Generate the ImageSet
 	im, err := g.Generate(job)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
 
-	// Verify the generated ImageSet
 	expectedImageSet := &domain.ImageSet{
 		ID:            123,
 		Name:          "test-bucket",
@@ -99,7 +90,6 @@ func TestGenerator_Generate(t *testing.T) {
 	}
 }
 
-// MockStore is a mock implementation of the Store interface for testing purposes
 type MockStore struct {
 	GetImageSetFunc func() ([]*image.RGBA, error)
 }

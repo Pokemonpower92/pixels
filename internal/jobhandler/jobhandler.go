@@ -15,7 +15,6 @@ type JobHandler struct {
 	repository repository.ISRepo
 }
 
-// NewJobHandler creates a new JobHandler instance.
 func NewJobHandler(
 	repository repository.ISRepo,
 	log *log.Logger) *JobHandler {
@@ -26,14 +25,15 @@ func NewJobHandler(
 }
 
 func (jobHandler *JobHandler) GenerateImageSet(job *job.Job) error {
-	jobHandler.logger.Printf("Generating imageset: %v", job.ImagesetID)
 	generatorLogger := log.New(log.Writer(), "generator: ", log.Flags())
 	generator := generator.NewImageSetGenerator(job, generatorLogger)
+
 	imageSet, err := generator.Generate(job)
 	if err != nil {
 		jobHandler.logger.Printf("Failed to generate imageset: %s", err)
 		return err
 	}
+
 	jobHandler.logger.Printf("Generated imageset: %v", imageSet.Name)
 	err = jobHandler.repository.Create(imageSet)
 	if err != nil {
@@ -42,17 +42,19 @@ func (jobHandler *JobHandler) GenerateImageSet(job *job.Job) error {
 	} else {
 		jobHandler.logger.Printf("Added imageset to repository: %v", imageSet.Name)
 	}
+
 	return nil
 }
 
-// HandleJob handles the processing of a single job.
 func (jobHandler *JobHandler) HandleJob(job *job.Job) error {
 	jobHandler.logger.Printf("Handling job: %v", job)
+
 	idAsInteger, err := strconv.Atoi(job.ImagesetID)
 	if err != nil {
 		jobHandler.logger.Printf("Failed to convert imageset id to int: %s", err)
 		return err
 	}
+
 	imageSet, ok := jobHandler.repository.Get(idAsInteger)
 	if !ok {
 		jobHandler.logger.Printf("Imageset not found in repository: %v", job.ImagesetID)

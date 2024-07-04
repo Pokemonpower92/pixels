@@ -67,7 +67,7 @@ type ImageSetGenerator struct {
 }
 
 // NewImageSetGenerator creates a new ImageSetGenerator instance.
-// It takes a *Job as input and returns a pointer to ImageSetGenerator.
+// It takes a *Job and a *log.Logger as input and returns a pointer to ImageSetGenerator.
 func NewImageSetGenerator(job *job.Job, logger *log.Logger) ImageSetGenerator {
 	return ImageSetGenerator{
 		logger: logger,
@@ -76,7 +76,7 @@ func NewImageSetGenerator(job *job.Job, logger *log.Logger) ImageSetGenerator {
 }
 
 // Generate generates an image set based on the provided job.
-// It takes a *Job as input and returns a pointer to types.ImageSet and an error.
+// It takes a *Job as input and returns a pointer to an ImageSet and an error.
 func (generator ImageSetGenerator) Generate(job *job.Job) (*domain.ImageSet, error) {
 	generator.logger.Printf("Generating imageset from job: %v", job)
 
@@ -98,5 +98,6 @@ func (generator ImageSetGenerator) Generate(job *job.Job) (*domain.ImageSet, err
 		Description:   job.Description,
 		AverageColors: calculateAverageColors(images),
 	}
+
 	return imageSet, nil
 }

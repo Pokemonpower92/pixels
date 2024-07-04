@@ -36,6 +36,7 @@ func (isc *ImageSetConsumer) Consume() {
 		isc.config.RabbitMQConfig.Host,
 		isc.config.RabbitMQConfig.Port,
 	)
+
 	conn, err := amqp.Dial(connString)
 	if err != nil {
 		isc.logger.Fatalf("Failed to connect to RabbitMQ: %s", err)
