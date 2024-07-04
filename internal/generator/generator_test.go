@@ -6,7 +6,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/pokemonpower92/collagecommon/types"
+	"github.com/pokemonpower92/imagesetservice/internal/domain"
 	"github.com/pokemonpower92/imagesetservice/internal/job"
 )
 
@@ -77,7 +77,7 @@ func TestGenerator_Generate(t *testing.T) {
 	}
 
 	// Verify the generated ImageSet
-	expectedImageSet := &types.ImageSet{
+	expectedImageSet := &domain.ImageSet{
 		ID:            123,
 		Name:          "test-bucket",
 		Description:   "Test description",

@@ -12,16 +12,19 @@ import (
 )
 
 type ImageSetConsumer struct {
-	l          *log.Logger
+	logger     *log.Logger
+	jobHandler *jobhandler.JobHandler
 	config     *config.ConsumerConfig
-	JobHandler *jobhandler.JobHandler
 }
 
-func NewImageSetConsumer() *ImageSetConsumer {
+func NewImageSetConsumer(
+	jobhandler *jobhandler.JobHandler,
+	logger *log.Logger,
+	config *config.ConsumerConfig) *ImageSetConsumer {
 	return &ImageSetConsumer{
-		l:          log.New(log.Writer(), "imagesetconsumer ", log.LstdFlags),
-		config:     config.NewConsumerConfig(),
-		JobHandler: jobhandler.NewJobHandler(),
+		logger:     logger,
+		jobHandler: jobhandler,
+		config:     config,
 	}
 }
 
@@ -35,13 +38,13 @@ func (isc *ImageSetConsumer) Consume() {
 	)
 	conn, err := amqp.Dial(connString)
 	if err != nil {
-		isc.l.Fatalf("Failed to connect to RabbitMQ: %s", err)
+		isc.logger.Fatalf("Failed to connect to RabbitMQ: %s", err)
 	}
 	defer conn.Close()
 
 	ch, err := conn.Channel()
 	if err != nil {
-		isc.l.Fatalf("Failed to open a channel: %s", err)
+		isc.logger.Fatalf("Failed to open a channel: %s", err)
 	}
 	defer ch.Close()
 
@@ -54,7 +57,7 @@ func (isc *ImageSetConsumer) Consume() {
 		isc.config.Queue.Args,
 	)
 	if err != nil {
-		isc.l.Fatalf("Failed to declare a queue: %s", err)
+		isc.logger.Fatalf("Failed to declare a queue: %s", err)
 	}
 
 	msgs, err := ch.Consume(
@@ -67,29 +70,27 @@ func (isc *ImageSetConsumer) Consume() {
 		nil,
 	)
 	if err != nil {
-		isc.l.Fatalf("Failed to register a consumer: %s", err)
+		isc.logger.Fatalf("Failed to register a consumer: %s", err)
 	}
-
-	var forever chan struct{}
 
 	go func() {
 		for d := range msgs {
-			isc.l.Printf("Received a job: %s", d.Body)
+			isc.logger.Printf("Received a job: %s", d.Body)
 
 			var j map[string]interface{}
 			err := json.Unmarshal(d.Body, &j)
 			if err != nil {
-				isc.l.Printf("Failed to decode job: %s", err)
+				isc.logger.Printf("Failed to decode job: %s", err)
 			}
 
 			decodedJob := job.NewJob(j)
-			err = isc.JobHandler.HandleJob(decodedJob)
+			err = isc.jobHandler.HandleJob(decodedJob)
 			if err != nil {
-				isc.l.Printf("Job failed with error: %s", err)
+				isc.logger.Printf("Job failed with error: %s", err)
 			}
 		}
 	}()
 
-	isc.l.Printf(" [*] Waiting for messages. To exit press CTRL+C")
-	<-forever
+	isc.logger.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	select {}
 }

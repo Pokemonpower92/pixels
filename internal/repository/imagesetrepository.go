@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/pokemonpower92/collagecommon/types"
+	"github.com/pokemonpower92/imagesetservice/internal/domain"
 )
 
 type ImageSetRepository struct {
@@ -42,24 +42,24 @@ func NewImageSetRepository() (*ImageSetRepository, error) {
 	return &ImageSetRepository{client: client, logger: logger}, nil
 }
 
-func (isr *ImageSetRepository) Get(id int) (*types.ImageSet, bool) {
-	return &types.ImageSet{
+func (isr *ImageSetRepository) Get(id int) (*domain.ImageSet, bool) {
+	return &domain.ImageSet{
 		Name: "test",
 	}, true
 }
 
-func (isr *ImageSetRepository) Create(is *types.ImageSet) error {
+func (isr *ImageSetRepository) Create(is *domain.ImageSet) error {
 	return nil
 }
 
-func (isr *ImageSetRepository) Update(id int, is *types.ImageSet) (*types.ImageSet, error) {
-	return &types.ImageSet{
+func (isr *ImageSetRepository) Update(id int, is *domain.ImageSet) (*domain.ImageSet, error) {
+	return &domain.ImageSet{
 		Name: "test",
 	}, nil
 }
 
-func (isr *ImageSetRepository) Delete(id int) (*types.ImageSet, error) {
-	return &types.ImageSet{
+func (isr *ImageSetRepository) Delete(id int) (*domain.ImageSet, error) {
+	return &domain.ImageSet{
 		Name: "test",
 	}, nil
 }

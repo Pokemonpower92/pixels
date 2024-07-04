@@ -11,15 +11,6 @@ docker run -d \
   --network collage \
   postgres:13
 
-# Create the redis container
-docker run -d \
-  --name collage_redis \
-  -p 6379:6379 \
-  -v ./data:/data \
-  --network collage \
-  redis:6.2-alpine \
-  redis-server --loglevel warning --appendonly yes --requirepass redispass
-
 # Create the rabbitmq container
 docker run -d \
   --name collage_rabbitmq \

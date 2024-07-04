@@ -4,8 +4,6 @@ import (
 	"os"
 	"strconv"
 	"sync"
-
-	"github.com/pokemonpower92/collagecommon/types"
 )
 
 var (
@@ -94,8 +92,16 @@ func NewS3Config() *S3Config {
 	}
 }
 
-func NewISDBConfig() types.DBConfig {
-	return types.DBConfig{
+type DBConfig struct {
+	Host     string
+	User     string
+	Password string
+	Port     string
+	DbName   string
+}
+
+func NewDBConfig() DBConfig {
+	return DBConfig{
 		Host:     os.Getenv("POSTGRES_HOST"),
 		User:     os.Getenv("POSTGRES_USER"),
 		Password: os.Getenv("POSTGRES_PASSWORD"),
