@@ -6,9 +6,9 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/pokemonpower92/collagegenerator/internal/datastore"
-	"github.com/pokemonpower92/collagegenerator/internal/domain"
-	"github.com/pokemonpower92/collagegenerator/internal/job"
+	"github.com/pokemonpower92/imagesetservice/internal/datastore"
+	"github.com/pokemonpower92/imagesetservice/internal/domain"
+	"github.com/pokemonpower92/imagesetservice/internal/job"
 )
 
 // calculateAverageColors calculates the average colors of a slice of images.

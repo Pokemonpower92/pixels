@@ -11,7 +11,7 @@ import (
 	awsconf "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/pokemonpower92/collagegenerator/config"
+	"github.com/pokemonpower92/imagesetservice/config"
 )
 
 // Store is an interface that defines the methods for retrieving image sets.

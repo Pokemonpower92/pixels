@@ -3,10 +3,10 @@ package imagesetparser
 import (
 	"log"
 
-	"github.com/pokemonpower92/collagegenerator/config"
-	"github.com/pokemonpower92/collagegenerator/internal/consumer"
-	"github.com/pokemonpower92/collagegenerator/internal/jobhandler"
-	"github.com/pokemonpower92/collagegenerator/internal/repository"
+	"github.com/pokemonpower92/imagesetservice/config"
+	"github.com/pokemonpower92/imagesetservice/internal/consumer"
+	"github.com/pokemonpower92/imagesetservice/internal/jobhandler"
+	"github.com/pokemonpower92/imagesetservice/internal/repository"
 )
 
 func init() {

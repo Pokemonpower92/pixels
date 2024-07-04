@@ -1,6 +1,6 @@
 package main
 
-import "github.com/pokemonpower92/imagesetservice/internal/imagesetparser"
+import "github.com/pokemonpower92/collagegenerator/internal/imagesetparser"
 
 func main() {
 	imagesetparser.Start()
