@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/pokemonpower92/collagegenerator/config"
-	"github.com/pokemonpower92/collagegenerator/internal/job"
-	"github.com/pokemonpower92/collagegenerator/internal/jobhandler"
+	"github.com/pokemonpower92/imagesetservice/config"
+	"github.com/pokemonpower92/imagesetservice/internal/job"
+	"github.com/pokemonpower92/imagesetservice/internal/jobhandler"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 

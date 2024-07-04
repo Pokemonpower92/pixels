@@ -6,8 +6,8 @@ import (
 	"log"
 	"testing"
 
-	"github.com/pokemonpower92/collagegenerator/internal/domain"
-	"github.com/pokemonpower92/collagegenerator/internal/job"
+	"github.com/pokemonpower92/imagesetservice/internal/domain"
+	"github.com/pokemonpower92/imagesetservice/internal/job"
 )
 
 func TestCalculateAverageColors(t *testing.T) {

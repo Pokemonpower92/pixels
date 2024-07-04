@@ -4,9 +4,9 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/pokemonpower92/collagegenerator/internal/generator"
-	"github.com/pokemonpower92/collagegenerator/internal/job"
-	"github.com/pokemonpower92/collagegenerator/internal/repository"
+	"github.com/pokemonpower92/imagesetservice/internal/generator"
+	"github.com/pokemonpower92/imagesetservice/internal/job"
+	"github.com/pokemonpower92/imagesetservice/internal/repository"
 )
 
 // JobHandler handles the processing of image set jobs.
