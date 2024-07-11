@@ -16,7 +16,7 @@ import (
 
 // Store is an interface that defines the methods for retrieving image sets.
 type Store interface {
-	GetImageSet() ([]*image.RGBA, error)
+	GetImages() ([]*image.RGBA, error)
 }
 
 // S3Api is an interface that defines the methods for interacting with Amazon S3.
@@ -64,7 +64,7 @@ func NewS3Store(bucket string) *S3Store {
 	}
 }
 
-func (store *S3Store) GetImageSet() ([]*image.RGBA, error) {
+func (store *S3Store) GetImages() ([]*image.RGBA, error) {
 	output, err := store.api.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket: aws.String(store.Bucket),
 	})
