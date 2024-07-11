@@ -16,8 +16,8 @@ type ImageSetConsumer struct {
 }
 
 func NewImageSetConsumer(
-	jobhandler jobhandler.JobHandler,
 	logger *log.Logger,
+	jobhandler jobhandler.JobHandler,
 	queue queue.Queue) *ImageSetConsumer {
 	return &ImageSetConsumer{
 		logger:     logger,

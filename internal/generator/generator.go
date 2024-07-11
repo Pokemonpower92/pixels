@@ -68,10 +68,10 @@ type ImageSetGenerator struct {
 
 // NewImageSetGenerator creates a new ImageSetGenerator instance.
 // It takes a *Job and a *log.Logger as input and returns a pointer to ImageSetGenerator.
-func NewImageSetGenerator(job *job.Job, logger *log.Logger) ImageSetGenerator {
+func NewImageSetGenerator(logger *log.Logger, store datastore.Store) ImageSetGenerator {
 	return ImageSetGenerator{
 		logger: logger,
-		store:  datastore.NewS3Store(job.BucketName),
+		store:  store,
 	}
 }
 
