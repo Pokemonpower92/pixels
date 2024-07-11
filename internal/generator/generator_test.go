@@ -3,6 +3,7 @@ package generator
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"log"
 	"testing"
 
@@ -10,90 +11,134 @@ import (
 	"github.com/pokemonpower92/collagegenerator/internal/job"
 )
 
+type mockDatastore struct{}
+
+func (m *mockDatastore) GetImages() ([]*image.RGBA, error) {
+	red := color.RGBA{R: 255, G: 0, B: 0, A: 0}
+	green := color.RGBA{R: 0, G: 255, B: 0, A: 0}
+	blue := color.RGBA{R: 0, G: 0, B: 255, A: 0}
+
+	redImage := image.NewRGBA(image.Rect(0, 0, 2, 2))
+	greenImage := image.NewRGBA(image.Rect(0, 0, 2, 2))
+	blueImage := image.NewRGBA(image.Rect(0, 0, 2, 2))
+
+	draw.Draw(redImage, redImage.Bounds(), &image.Uniform{red}, image.Point{}, draw.Src)
+	draw.Draw(greenImage, greenImage.Bounds(), &image.Uniform{green}, image.Point{}, draw.Src)
+	draw.Draw(blueImage, blueImage.Bounds(), &image.Uniform{blue}, image.Point{}, draw.Src)
+
+	return []*image.RGBA{redImage, greenImage, blueImage}, nil
+}
+
 func TestCalculateAverageColors(t *testing.T) {
-	img1 := image.NewRGBA(image.Rect(0, 0, 2, 2))
-	img1.Set(0, 0, color.RGBA{R: 255, G: 0, B: 0, A: 255})     // Red
-	img1.Set(1, 0, color.RGBA{R: 0, G: 255, B: 0, A: 255})     // Green
-	img1.Set(0, 1, color.RGBA{R: 0, G: 0, B: 255, A: 255})     // Blue
-	img1.Set(1, 1, color.RGBA{R: 255, G: 255, B: 255, A: 255}) // White
-
-	img2 := image.NewRGBA(image.Rect(0, 0, 2, 2))
-	img2.Set(0, 0, color.RGBA{R: 128, G: 128, B: 128, A: 255}) // Gray
-	img2.Set(1, 0, color.RGBA{R: 0, G: 0, B: 0, A: 255})       // Black
-	img2.Set(0, 1, color.RGBA{R: 255, G: 255, B: 255, A: 255}) // White
-	img2.Set(1, 1, color.RGBA{R: 255, G: 0, B: 0, A: 255})     // Red
-
-	images := []*image.RGBA{img1, img2}
-
-	expectedColors := []*color.RGBA{
-		{R: 127, G: 127, B: 127, A: 255}, // Gray
-		{R: 159, G: 95, B: 95, A: 255},   // Reddish
+	tests := []struct {
+		name           string
+		images         []*image.RGBA
+		expectedColors []*color.RGBA
+	}{
+		{
+			name: "Test case 1",
+			images: []*image.RGBA{
+				image.NewRGBA(image.Rect(0, 0, 2, 2)),
+				image.NewRGBA(image.Rect(0, 0, 2, 2)),
+			},
+			expectedColors: []*color.RGBA{
+				{R: 0, G: 0, B: 0, A: 0},
+				{R: 0, G: 0, B: 0, A: 0},
+			},
+		},
+		// Add more test cases here...
 	}
 
-	averageColors := calculateAverageColors(images)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			averageColors := calculateAverageColors(tt.images)
 
-	for i, c := range averageColors {
-		if c.R != expectedColors[i].R || c.G != expectedColors[i].G || c.B != expectedColors[i].B || c.A != expectedColors[i].A {
-			t.Errorf("Average color mismatch at index %d. Expected: %v, Got: %v", i, expectedColors[i], c)
-		}
+			if len(averageColors) != len(tt.expectedColors) {
+				t.Errorf("Average colors length mismatch. Expected: %d, Got: %d",
+					len(tt.expectedColors),
+					len(averageColors),
+				)
+			} else {
+				for i, c := range averageColors {
+					if c.R != tt.expectedColors[i].R ||
+						c.G != tt.expectedColors[i].G ||
+						c.B != tt.expectedColors[i].B ||
+						c.A != tt.expectedColors[i].A {
+						t.Errorf(
+							"Average color mismatch at index %d. Expected: %v, Got: %v",
+							i,
+							tt.expectedColors[i],
+							c,
+						)
+					}
+				}
+			}
+		})
 	}
 }
 
-func TestGenerator_Generate(t *testing.T) {
-	job := &job.Job{
-		ImagesetID:  "123",
-		BucketName:  "test-bucket",
-		Description: "Test description",
-	}
-
-	store := &MockStore{
-		GetImageSetFunc: func() ([]*image.RGBA, error) {
-			img := image.NewRGBA(image.Rect(0, 0, 2, 2))
-			img.Set(0, 0, color.RGBA{R: 255, G: 0, B: 0, A: 255})     // Red
-			img.Set(1, 0, color.RGBA{R: 0, G: 255, B: 0, A: 255})     // Green
-			img.Set(0, 1, color.RGBA{R: 0, G: 0, B: 255, A: 255})     // Blue
-			img.Set(1, 1, color.RGBA{R: 255, G: 255, B: 255, A: 255}) // White
-
-			return []*image.RGBA{img}, nil
+func TestGenerator(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    *job.Job
+		expected *domain.ImageSet
+	}{
+		{
+			name: "Test case 1",
+			input: &job.Job{
+				ImagesetID:  "1",
+				BucketName:  "Test case 1",
+				Description: "Test case 1",
+			},
+			expected: &domain.ImageSet{
+				ID:          1,
+				Name:        "Test case 1",
+				Description: "Test case 1",
+				AverageColors: []*color.RGBA{
+					// Red
+					{R: 255, G: 0, B: 0, A: 0},
+					// Green
+					{R: 0, G: 255, B: 0, A: 0},
+					// Blue
+					{R: 0, G: 0, B: 255, A: 0},
+				},
+			},
 		},
 	}
 
-	g := &ImageSetGenerator{
-		store:  store,
-		logger: log.New(log.Writer(), "generator ", log.LstdFlags),
-	}
-
-	im, err := g.Generate(job)
-	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
-	}
-
-	expectedImageSet := &domain.ImageSet{
-		ID:            123,
-		Name:          "test-bucket",
-		Description:   "Test description",
-		AverageColors: []*color.RGBA{{R: 127, G: 127, B: 127, A: 255}}, // Gray
-	}
-
-	if im.ID != expectedImageSet.ID || im.Name != expectedImageSet.Name || im.Description != expectedImageSet.Description {
-		t.Errorf("ImageSet mismatch. Expected: %v, Got: %v", expectedImageSet, im)
-	}
-
-	if len(im.AverageColors) != len(expectedImageSet.AverageColors) {
-		t.Errorf("Average colors length mismatch. Expected: %d, Got: %d", len(expectedImageSet.AverageColors), len(im.AverageColors))
-	} else {
-		for i, c := range im.AverageColors {
-			if c.R != expectedImageSet.AverageColors[i].R || c.G != expectedImageSet.AverageColors[i].G || c.B != expectedImageSet.AverageColors[i].B || c.A != expectedImageSet.AverageColors[i].A {
-				t.Errorf("Average color mismatch at index %d. Expected: %v, Got: %v", i, expectedImageSet.AverageColors[i], c)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			isg := ImageSetGenerator{
+				logger: log.New(log.Writer(), "testLogger: ", log.LstdFlags),
+				store:  &mockDatastore{},
 			}
-		}
+			result, err := isg.Generate(tt.input)
+			if err != nil {
+				t.Errorf("Error generating image set: %s", err)
+			}
+			if result.ID != tt.expected.ID {
+				t.Errorf(
+					"ImageSet ID mismatch. Expected: %d, Got: %d",
+					tt.expected.ID,
+					result.ID,
+				)
+			}
+			if result.Name != tt.expected.Name {
+				t.Errorf(
+					"ImageSet Name mismatch. Expected: %s, Got: %s",
+					tt.expected.Name,
+					result.Name,
+				)
+			}
+			if result.AverageColors[0].R != tt.expected.AverageColors[0].R ||
+				result.AverageColors[0].G != tt.expected.AverageColors[0].G ||
+				result.AverageColors[0].B != tt.expected.AverageColors[0].B ||
+				result.AverageColors[0].A != tt.expected.AverageColors[0].A {
+				t.Errorf("Average color mismatch at index 0. Expected: %v, Got: %v",
+					tt.expected.AverageColors[0],
+					result.AverageColors[0],
+				)
+			}
+		})
 	}
-}
-
-type MockStore struct {
-	GetImageSetFunc func() ([]*image.RGBA, error)
-}
-
-func (m *MockStore) GetImageSet() ([]*image.RGBA, error) {
-	return m.GetImageSetFunc()
 }

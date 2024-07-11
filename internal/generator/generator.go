@@ -80,7 +80,7 @@ func NewImageSetGenerator(job *job.Job, logger *log.Logger) ImageSetGenerator {
 func (generator ImageSetGenerator) Generate(job *job.Job) (*domain.ImageSet, error) {
 	generator.logger.Printf("Generating imageset from job: %v", job)
 
-	images, err := generator.store.GetImageSet()
+	images, err := generator.store.GetImages()
 	if err != nil {
 		generator.logger.Printf("Failed to get imageset from store: %s", err)
 		return nil, err

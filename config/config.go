@@ -2,10 +2,13 @@ package config
 
 import (
 	"os"
-	"strconv"
 )
 
-type QueueConfig struct {
+type RabbitMQConfig struct {
+	Host       string
+	Port       string
+	User       string
+	Password   string
 	Name       string
 	Durable    bool
 	AutoDelete bool
@@ -14,60 +17,18 @@ type QueueConfig struct {
 	Args       map[string]interface{}
 }
 
-type RabbitMQConfig struct {
-	Host     string
-	Port     string
-	User     string
-	Password string
-}
-
-type ConsumerConfig struct {
-	Queue          QueueConfig
-	RabbitMQConfig RabbitMQConfig
-}
-
-func NewConsumerConfig() *ConsumerConfig {
-	qc := QueueConfig{
+func NewRabbitMQConfig() *RabbitMQConfig {
+	return &RabbitMQConfig{
+		Host:       os.Getenv("RABBITMQ_HOST"),
+		Port:       os.Getenv("RABBITMQ_PORT"),
+		User:       os.Getenv("RABBITMQ_USER"),
+		Password:   os.Getenv("RABBITMQ_PASSWORD"),
 		Name:       "hello",
 		Durable:    false,
 		AutoDelete: false,
 		Exclusive:  false,
 		NoWait:     false,
 		Args:       nil,
-	}
-	rmqc := RabbitMQConfig{
-		Host:     os.Getenv("RABBITMQ_HOST"),
-		Port:     os.Getenv("RABBITMQ_PORT"),
-		User:     os.Getenv("RABBITMQ_USER"),
-		Password: os.Getenv("RABBITMQ_PASSWORD"),
-	}
-
-	return &ConsumerConfig{
-		Queue:          qc,
-		RabbitMQConfig: rmqc,
-	}
-}
-
-type RedisConfig struct {
-	Host     string
-	User     string
-	Password string
-	Port     string
-	DB       int
-}
-
-func NewRedisConfig() *RedisConfig {
-	db, err := strconv.Atoi(os.Getenv("REDIS_DB"))
-	if err != nil {
-		panic("Invalid REDIS_DB value")
-	}
-
-	return &RedisConfig{
-		Host:     os.Getenv("REDIS_HOST"),
-		User:     os.Getenv("REDIS_USER"),
-		Password: os.Getenv("REDIS_PASSWORD"),
-		Port:     os.Getenv("REDIS_PORT"),
-		DB:       db,
 	}
 }
 

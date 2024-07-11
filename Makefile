@@ -6,7 +6,7 @@ GO_BUILD=$(GO_CMD) build
 GO_VET=$(GO_CMD) vet
 GO_CLEAN=$(GO_CMD) clean
 GO_FMT=$(GO_CMD) fmt
-GO_TEST=$(GO_CMD) test
+GO_TEST=$(GO_CMD) test -cover
 
 # Application directories
 APP1_DIR=cmd/imagesetparser
