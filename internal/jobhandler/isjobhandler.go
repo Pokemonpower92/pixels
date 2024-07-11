@@ -13,22 +13,22 @@ import (
 type ISJobHandler struct {
 	logger     *log.Logger
 	repository repository.ISRepo
+	generator  generator.Generator
 }
 
 func NewISJobHandler(
+	log *log.Logger,
 	repository repository.ISRepo,
-	log *log.Logger) *ISJobHandler {
+	generator generator.Generator) *ISJobHandler {
 	return &ISJobHandler{
 		logger:     log,
 		repository: repository,
+		generator:  generator,
 	}
 }
 
 func (isjh *ISJobHandler) generateImageSet(job *job.Job) error {
-	generatorLogger := log.New(log.Writer(), "generator: ", log.Flags())
-	generator := generator.NewImageSetGenerator(job, generatorLogger)
-
-	imageSet, err := generator.Generate(job)
+	imageSet, err := isjh.generator.Generate(job)
 	if err != nil {
 		isjh.logger.Printf("Failed to generate imageset: %s", err)
 		return err
