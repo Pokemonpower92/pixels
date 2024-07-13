@@ -80,12 +80,12 @@ func TestCalculateAverageColors(t *testing.T) {
 func TestGenerator(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    *job.Job
+		input    *job.ImageSetJob
 		expected *domain.ImageSet
 	}{
 		{
 			name: "Test case 1",
-			input: &job.Job{
+			input: &job.ImageSetJob{
 				ImagesetID:  "1",
 				BucketName:  "Test case 1",
 				Description: "Test case 1",

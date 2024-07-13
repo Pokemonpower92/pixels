@@ -14,15 +14,15 @@ import (
 func TestISJobHandler(t *testing.T) {
 	tests := []struct {
 		name         string
-		job          *job.Job
+		job          *job.ImageSetJob
 		getFunc      func(id int) (*domain.ImageSet, bool)
 		createFunc   func(obj *domain.ImageSet) error
-		generateFunc func(job *job.Job) (*domain.ImageSet, error)
+		generateFunc func(job *job.ImageSetJob) (*domain.ImageSet, error)
 		expected     error
 	}{
 		{
 			name: "invalid imageset id",
-			job: &job.Job{
+			job: &job.ImageSetJob{
 				ImagesetID:  "bad id",
 				BucketName:  "test bucket",
 				Description: "test description",
@@ -33,14 +33,14 @@ func TestISJobHandler(t *testing.T) {
 			createFunc: func(obj *domain.ImageSet) error {
 				return nil
 			},
-			generateFunc: func(job *job.Job) (*domain.ImageSet, error) {
+			generateFunc: func(job *job.ImageSetJob) (*domain.ImageSet, error) {
 				return nil, nil
 			},
 			expected: &strconv.NumError{Func: "Atoi", Num: "bad id", Err: strconv.ErrSyntax},
 		},
 		{
 			name: "imageset found",
-			job: &job.Job{
+			job: &job.ImageSetJob{
 				ImagesetID:  "1",
 				BucketName:  "test bucket",
 				Description: "test description",
@@ -51,14 +51,14 @@ func TestISJobHandler(t *testing.T) {
 			createFunc: func(obj *domain.ImageSet) error {
 				return nil
 			},
-			generateFunc: func(job *job.Job) (*domain.ImageSet, error) {
+			generateFunc: func(job *job.ImageSetJob) (*domain.ImageSet, error) {
 				return &domain.ImageSet{}, nil
 			},
 			expected: errors.New(""),
 		},
 		{
 			name: "imageset not found",
-			job: &job.Job{
+			job: &job.ImageSetJob{
 				ImagesetID:  "1",
 				BucketName:  "test bucket",
 				Description: "test description",
@@ -69,14 +69,14 @@ func TestISJobHandler(t *testing.T) {
 			createFunc: func(obj *domain.ImageSet) error {
 				return nil
 			},
-			generateFunc: func(job *job.Job) (*domain.ImageSet, error) {
+			generateFunc: func(job *job.ImageSetJob) (*domain.ImageSet, error) {
 				return &domain.ImageSet{}, nil
 			},
 			expected: errors.New(""),
 		},
 		{
 			name: "failed to generate imageset",
-			job: &job.Job{
+			job: &job.ImageSetJob{
 				ImagesetID:  "1",
 				BucketName:  "test bucket",
 				Description: "test description",
@@ -87,14 +87,14 @@ func TestISJobHandler(t *testing.T) {
 			createFunc: func(obj *domain.ImageSet) error {
 				return nil
 			},
-			generateFunc: func(job *job.Job) (*domain.ImageSet, error) {
+			generateFunc: func(job *job.ImageSetJob) (*domain.ImageSet, error) {
 				return nil, errors.New("failed to generate imageset")
 			},
 			expected: errors.New("failed to generate imageset"),
 		},
 		{
 			name: "failed to create imageset",
-			job: &job.Job{
+			job: &job.ImageSetJob{
 				ImagesetID:  "1",
 				BucketName:  "test bucket",
 				Description: "test description",
@@ -105,7 +105,7 @@ func TestISJobHandler(t *testing.T) {
 			createFunc: func(obj *domain.ImageSet) error {
 				return errors.New("failed to create imageset")
 			},
-			generateFunc: func(job *job.Job) (*domain.ImageSet, error) {
+			generateFunc: func(job *job.ImageSetJob) (*domain.ImageSet, error) {
 				return &domain.ImageSet{}, nil
 			},
 			expected: errors.New("failed to create imageset"),
