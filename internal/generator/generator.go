@@ -57,7 +57,7 @@ func calculateAverageColors(images []*image.RGBA) []*color.RGBA {
 
 // Generator is an interface for generating image sets.
 type Generator interface {
-	Generate(job *job.Job) (*domain.ImageSet, error)
+	Generate(job *job.ImageSetJob) (*domain.ImageSet, error)
 }
 
 // ImageSetGenerator is a struct that implements the Generator interface.
@@ -77,7 +77,7 @@ func NewImageSetGenerator(logger *log.Logger, store datastore.Store) ImageSetGen
 
 // Generate generates an image set based on the provided job.
 // It takes a *Job as input and returns a pointer to an ImageSet and an error.
-func (generator ImageSetGenerator) Generate(job *job.Job) (*domain.ImageSet, error) {
+func (generator ImageSetGenerator) Generate(job *job.ImageSetJob) (*domain.ImageSet, error) {
 	generator.logger.Printf("Generating imageset from job: %v", job)
 
 	images, err := generator.store.GetImages()

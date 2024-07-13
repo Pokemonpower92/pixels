@@ -6,9 +6,9 @@ import (
 )
 
 type GeneratorStub struct {
-	GenerateFunc func(job *job.Job) (*domain.ImageSet, error)
+	GenerateFunc func(job *job.ImageSetJob) (*domain.ImageSet, error)
 }
 
-func (g *GeneratorStub) Generate(job *job.Job) (*domain.ImageSet, error) {
+func (g *GeneratorStub) Generate(job *job.ImageSetJob) (*domain.ImageSet, error) {
 	return g.GenerateFunc(job)
 }

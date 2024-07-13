@@ -27,7 +27,7 @@ func NewISJobHandler(
 	}
 }
 
-func (isjh *ISJobHandler) generateImageSet(job *job.Job) error {
+func (isjh *ISJobHandler) generateImageSet(job *job.ImageSetJob) error {
 	imageSet, err := isjh.generator.Generate(job)
 	if err != nil {
 		isjh.logger.Printf("Failed to generate imageset: %s", err)
@@ -46,7 +46,7 @@ func (isjh *ISJobHandler) generateImageSet(job *job.Job) error {
 	return nil
 }
 
-func (isjh *ISJobHandler) HandleJob(job *job.Job) error {
+func (isjh *ISJobHandler) HandleJob(job *job.ImageSetJob) error {
 	isjh.logger.Printf("Handling job: %v", job)
 
 	idAsInteger, err := strconv.Atoi(job.ImagesetID)
