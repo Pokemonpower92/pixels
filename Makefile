@@ -18,6 +18,9 @@ APP1_BINARY=bin/imagesetparser
 imagesetparser: vet
 	$(GO_BUILD) -C $(APP1_DIR) -o ../../$(APP1_BINARY)
 
+db: vet
+	$(GO_CMD) run ./scripts/db/create_db.go
+
 vet: fmt
 	$(GO_VET) ./...
 

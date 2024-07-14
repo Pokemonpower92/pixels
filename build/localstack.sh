@@ -23,4 +23,4 @@ docker run -d \
 
 # Create the imageset service container
 docker build -t imagesetservice:latest -f ./build/Dockerfile .
-docker run --env-file ./.env --network collage imagesetservice:latest
+docker run --env-file ./.env.docker --network collage imagesetservice:latest
