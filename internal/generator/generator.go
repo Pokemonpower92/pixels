@@ -13,11 +13,11 @@ import (
 
 // calculateAverageColors calculates the average colors of a slice of images.
 // It takes a slice of *image.RGBA as input and returns a slice of *color.RGBA.
-func calculateAverageColors(images []*image.RGBA) []*color.RGBA {
+func calculateAverageColors(images []*image.RGBA) []color.RGBA {
 	logger := log.New(log.Writer(), "averageColor ", log.LstdFlags)
 	logger.Println("Calculating average colors.")
 
-	var averageColors []*color.RGBA
+	var averageColors []color.RGBA
 	for _, image := range images {
 		bounds := image.Bounds()
 		width := bounds.Dx()
@@ -47,7 +47,7 @@ func calculateAverageColors(images []*image.RGBA) []*color.RGBA {
 		// Create the average color as a color.RGBA struct
 		averageColor := color.RGBA{R: uint8(avgRed), G: uint8(avgGreen), B: uint8(avgBlue), A: uint8(avgAlpha)}
 
-		averageColors = append(averageColors, &averageColor)
+		averageColors = append(averageColors, averageColor)
 	}
 
 	logger.Println("Average colors calculated.")

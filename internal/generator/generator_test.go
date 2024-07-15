@@ -33,7 +33,7 @@ func TestCalculateAverageColors(t *testing.T) {
 	tests := []struct {
 		name           string
 		images         []*image.RGBA
-		expectedColors []*color.RGBA
+		expectedColors []color.RGBA
 	}{
 		{
 			name: "Test case 1",
@@ -41,7 +41,7 @@ func TestCalculateAverageColors(t *testing.T) {
 				image.NewRGBA(image.Rect(0, 0, 2, 2)),
 				image.NewRGBA(image.Rect(0, 0, 2, 2)),
 			},
-			expectedColors: []*color.RGBA{
+			expectedColors: []color.RGBA{
 				{R: 0, G: 0, B: 0, A: 0},
 				{R: 0, G: 0, B: 0, A: 0},
 			},
@@ -94,7 +94,7 @@ func TestGenerator(t *testing.T) {
 				ID:          1,
 				Name:        "Test case 1",
 				Description: "Test case 1",
-				AverageColors: []*color.RGBA{
+				AverageColors: []color.RGBA{
 					// Red
 					{R: 255, G: 0, B: 0, A: 0},
 					// Green
