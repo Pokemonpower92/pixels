@@ -39,8 +39,10 @@ func main() {
 	_, err = pool.Exec(context.Background(),
 		`CREATE TABLE IF NOT EXISTS imagesets (
 			id SERIAL PRIMARY KEY,
-			name VARCHAR(255) NOT NULL,
-			description TEXT NOT NULL
+			name VARCHAR(255) NOT NULL UNIQUE,
+			description TEXT NOT NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			update_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);`,
 	)
 	if err != nil {
@@ -54,7 +56,9 @@ func main() {
 			imageset_id INT NOT NULL,
 			red INT NOT NULL,
 			green INT NOT NULL,
-			blue INT NOT NULL
+			blue INT NOT NULL,
+			alpha INT NOT NULL,
+			FOREIGN KEY (imageset_id) REFERENCES imagesets(id)
 		);`,
 	)
 	if err != nil {
