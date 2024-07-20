@@ -1,41 +1,31 @@
 package server
 
 import (
+	"log"
 	"net/http"
-	"time"
 
-	"github.com/pokemonpower92/collagegenerator/internal/handler"
+	"github.com/pokemonpower92/collagegenerator/internal/router"
 )
 
 type ImageSetServer struct {
-	handler handler.Handler
-	server  *http.Server
-	mux     *http.ServeMux
+	server *http.Server
+	router *router.Router
 }
 
-func NewImageSetServer(h handler.Handler) *ImageSetServer {
-	mux := http.NewServeMux()
+func NewImageSetServer(router *router.Router) *ImageSetServer {
 	server := &http.Server{
-		Addr:         ":8080",
-		Handler:      mux,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  120 * time.Second,
+		Addr:    "localhost:8080",
+		Handler: router.Mux,
 	}
 
 	return &ImageSetServer{
-		handler: h,
-		server:  server,
-		mux:     mux,
+		server: server,
+		router: router,
 	}
 }
 
 func (iss *ImageSetServer) Start() {
-	iss.mux.HandleFunc("GET /imagesets", iss.handler.Get)
-	iss.mux.HandleFunc("POST /imagesets", iss.handler.Post)
-	iss.mux.HandleFunc("PUT /imagesets", iss.handler.Put)
-	iss.mux.HandleFunc("DELETE /imagesets", iss.handler.Delete)
-
+	log.Printf("Starting server on %s", iss.server.Addr)
 	err := iss.server.ListenAndServe()
 	if err != nil {
 		panic(err)

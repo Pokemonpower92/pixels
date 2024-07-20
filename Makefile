@@ -18,6 +18,9 @@ APP1_BINARY=bin/imagesetparser
 imagesetparser: vet
 	$(GO_BUILD) -C $(APP1_DIR) -o ../../$(APP1_BINARY)
 
+collageapi: vet
+	$(GO_BUILD) -C cmd/collageapi -o ../../bin/collageapi
+
 db: vet
 	$(GO_CMD) run ./scripts/db/create_db.go
 
@@ -36,7 +39,7 @@ clean:
 	rm ./bin/*
 
 # Composite targets
-build: imagesetparser
+build: imagesetparser collageapi
 all: vet build
 
 .PHONY: build fmt vet clean all
