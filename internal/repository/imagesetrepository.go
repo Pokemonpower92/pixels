@@ -92,6 +92,49 @@ func (isr *ImageSetRepository) Get(id int) (*domain.ImageSet, bool) {
 	return &imageSet, true
 }
 
+func (isr *ImageSetRepository) GetAll() ([]*domain.ImageSet, bool) {
+	var imageSets []*domain.ImageSet
+
+	rows, err := isr.client.Query(
+		context.Background(),
+		`SELECT i.id, i.name, i.description, a.red, a.green, a.blue, a.alpha 
+		FROM imagesets i 
+		JOIN average_colors a ON i.id = a.imageset_id`,
+	)
+	if err != nil {
+		isr.logger.Printf("Failed to get all imagesets: %s", err)
+		return nil, false
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var imageSet domain.ImageSet
+		var color color.RGBA
+		err := rows.Scan(
+			&imageSet.ID,
+			&imageSet.Name,
+			&imageSet.Description,
+			&color.R,
+			&color.G,
+			&color.B,
+			&color.A,
+		)
+		if err != nil {
+			isr.logger.Printf("Failed to scan imageset: %s", err)
+			return nil, false
+		}
+		imageSet.AverageColors = append(imageSet.AverageColors, color)
+		imageSets = append(imageSets, &imageSet)
+	}
+
+	if err := rows.Err(); err != nil {
+		isr.logger.Printf("Failed to iterate over imagesets: %s", err)
+		return nil, false
+	}
+
+	return imageSets, true
+}
+
 func (isr *ImageSetRepository) Create(is *domain.ImageSet) error {
 	var id int
 	err := isr.client.QueryRow(

@@ -6,6 +6,7 @@ import (
 
 type Repository[O any] interface {
 	Get(id int) (*O, bool)
+	GetAll() ([]*O, bool)
 	Create(obj *O) error
 	Update(id int, obj *O) (*O, error)
 	Delete(id int) error
