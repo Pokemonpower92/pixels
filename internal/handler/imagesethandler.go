@@ -39,14 +39,17 @@ func (ish *ImageSetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ish *ImageSetHandler) get(w http.ResponseWriter, r *http.Request) {
+	ish.l.Printf("Getting ImageSet by ID")
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
+		ish.l.Printf("Invalid ID: %s", err)
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	imageSet, ok := ish.repo.Get(id)
 	if !ok {
+		ish.l.Printf("ImageSet not found")
 		http.Error(w, "ImageSet not found", http.StatusNotFound)
 		return
 	}
@@ -55,6 +58,7 @@ func (ish *ImageSetHandler) get(w http.ResponseWriter, r *http.Request) {
 	encoder := json.NewEncoder(w)
 	err = encoder.Encode(imageSet)
 	if err != nil {
+		ish.l.Printf("Failed to encode ImageSet: %s", err)
 		http.Error(w, "Error encoding ImageSet", http.StatusInternalServerError)
 	}
 }

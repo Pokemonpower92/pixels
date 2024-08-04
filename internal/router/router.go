@@ -2,17 +2,17 @@ package router
 
 import (
 	"net/http"
-
-	"github.com/pokemonpower92/collagegenerator/internal/handler"
 )
 
 type Router struct {
 	Mux *http.ServeMux
 }
 
-func NewRouter(imageSetHandler handler.Handler) *Router {
+func NewRouter() *Router {
 	sm := http.NewServeMux()
-	sm.Handle("/imagesets/{id}", imageSetHandler)
-
 	return &Router{Mux: sm}
+}
+
+func (r *Router) RegisterHandler(path string, handler http.Handler) {
+	r.Mux.Handle(path, handler)
 }

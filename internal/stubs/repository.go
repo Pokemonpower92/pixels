@@ -2,6 +2,7 @@ package stubs
 
 type RepositoryStub[O any] struct {
 	GetFunc    func(id int) (*O, bool)
+	GetAllFunc func() ([]*O, bool)
 	CreateFunc func(obj *O) error
 	UpdateFunc func(id int, obj *O) (*O, error)
 	DeleteFunc func(id int) error
@@ -9,6 +10,10 @@ type RepositoryStub[O any] struct {
 
 func (r *RepositoryStub[O]) Get(id int) (*O, bool) {
 	return r.GetFunc(id)
+}
+
+func (r *RepositoryStub[O]) GetAll() ([]*O, bool) {
+	return r.GetAllFunc()
 }
 
 func (r *RepositoryStub[O]) Create(obj *O) error {
