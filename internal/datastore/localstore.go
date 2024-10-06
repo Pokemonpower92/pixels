@@ -21,4 +21,10 @@ func NewLocalStore(directory string) *LocalStore {
 func (s *LocalStore) GetImages() ([]*image.RGBA, error) {
 	s.logger.Printf("Reading images from directory: %s", s.Directory)
 	f, err := os.Open(s.Directory)
+	if err != nil {
+		s.logger.Printf("Failed to open directory: %s", err)
+		return nil, err
+	}
+	defer f.Close()
+
 }
