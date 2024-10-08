@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Create the network
+docker network create collage
+
 # Create the db container
 docker run -d \
   --name collage_db \
@@ -21,6 +24,11 @@ docker run -d \
   --network collage \
   rabbitmq:3-management
 
-# Create the imageset service container
-docker build -t imagesetservice:latest -f ./build/Dockerfile .
-docker run --env-file ./.env.docker --network collage imagesetservice:latest
+# Create the imagesetparser container
+docker build -t imagesetparser:latest -f ./build/Dockerfile .
+docker run \
+    --name imagesetparser \
+    --env-file ./.env.docker \
+    --network collage \
+    imagesetparser:latest
+

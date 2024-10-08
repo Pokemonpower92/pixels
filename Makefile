@@ -8,21 +8,17 @@ GO_CLEAN=$(GO_CMD) clean
 GO_FMT=$(GO_CMD) fmt
 GO_TEST=$(GO_CMD) test -cover
 
-# Application directories
-APP1_DIR=cmd/imagesetparser
+db: vet
+	$(GO_CMD) run ./scripts/db/create_db.go
 
-# Output binary names
-APP1_BINARY=bin/imagesetparser
+localstack: 
+	sh ./build/localstack.sh
 
-# Build step for app1
 imagesetparser: vet
-	$(GO_BUILD) -C $(APP1_DIR) -o ../../$(APP1_BINARY)
+	$(GO_BUILD) -C cmd/imagesetparser -o ../../bin/imagesetparser
 
 collageapi: vet
 	$(GO_BUILD) -C cmd/collageapi -o ../../bin/collageapi
-
-db: vet
-	$(GO_CMD) run ./scripts/db/create_db.go
 
 vet: fmt
 	$(GO_VET) ./...
@@ -33,12 +29,10 @@ fmt:
 test:
 	$(GO_TEST) ./...
 
-# Clean step
 clean:
 	$(GO_CLEAN) && \
 	rm ./bin/*
 
-# Composite targets
 build: imagesetparser collageapi
 all: vet build
 
