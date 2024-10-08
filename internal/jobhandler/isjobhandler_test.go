@@ -24,7 +24,7 @@ func TestISJobHandler(t *testing.T) {
 			name: "invalid imageset id",
 			job: &job.ImageSetJob{
 				ImagesetID:  "bad id",
-				BucketName:  "test bucket",
+				Path:        "test_bucket",
 				Description: "test description",
 			},
 			getFunc: func(id int) (*domain.ImageSet, bool) {
@@ -42,7 +42,7 @@ func TestISJobHandler(t *testing.T) {
 			name: "imageset found",
 			job: &job.ImageSetJob{
 				ImagesetID:  "1",
-				BucketName:  "test bucket",
+				Path:        "test_bucket",
 				Description: "test description",
 			},
 			getFunc: func(id int) (*domain.ImageSet, bool) {
@@ -60,7 +60,7 @@ func TestISJobHandler(t *testing.T) {
 			name: "imageset not found",
 			job: &job.ImageSetJob{
 				ImagesetID:  "1",
-				BucketName:  "test bucket",
+				Path:        "test_bucket",
 				Description: "test description",
 			},
 			getFunc: func(id int) (*domain.ImageSet, bool) {
@@ -78,7 +78,7 @@ func TestISJobHandler(t *testing.T) {
 			name: "failed to generate imageset",
 			job: &job.ImageSetJob{
 				ImagesetID:  "1",
-				BucketName:  "test bucket",
+				Path:        "test_bucket",
 				Description: "test description",
 			},
 			getFunc: func(id int) (*domain.ImageSet, bool) {
@@ -96,7 +96,7 @@ func TestISJobHandler(t *testing.T) {
 			name: "failed to create imageset",
 			job: &job.ImageSetJob{
 				ImagesetID:  "1",
-				BucketName:  "test bucket",
+				Path:        "test_bucket",
 				Description: "test description",
 			},
 			getFunc: func(id int) (*domain.ImageSet, bool) {

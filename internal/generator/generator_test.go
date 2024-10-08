@@ -13,7 +13,7 @@ import (
 
 type mockDatastore struct{}
 
-func (m *mockDatastore) GetImages() ([]*image.RGBA, error) {
+func (m *mockDatastore) GetImages(filePath string) ([]*image.RGBA, error) {
 	red := color.RGBA{R: 255, G: 0, B: 0, A: 0}
 	green := color.RGBA{R: 0, G: 255, B: 0, A: 0}
 	blue := color.RGBA{R: 0, G: 0, B: 255, A: 0}
@@ -87,7 +87,7 @@ func TestGenerator(t *testing.T) {
 			name: "Test case 1",
 			input: &job.ImageSetJob{
 				ImagesetID:  "1",
-				BucketName:  "Test case 1",
+				Path:        "Test case 1",
 				Description: "Test case 1",
 			},
 			expected: &domain.ImageSet{

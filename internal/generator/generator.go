@@ -45,7 +45,12 @@ func calculateAverageColors(images []*image.RGBA) []color.RGBA {
 		avgAlpha := totalAlpha / totalPixels
 
 		// Create the average color as a color.RGBA struct
-		averageColor := color.RGBA{R: uint8(avgRed), G: uint8(avgGreen), B: uint8(avgBlue), A: uint8(avgAlpha)}
+		averageColor := color.RGBA{
+			R: uint8(avgRed),
+			G: uint8(avgGreen),
+			B: uint8(avgBlue),
+			A: uint8(avgAlpha),
+		}
 
 		averageColors = append(averageColors, averageColor)
 	}
@@ -80,7 +85,7 @@ func NewImageSetGenerator(logger *log.Logger, store datastore.Store) ImageSetGen
 func (generator ImageSetGenerator) Generate(job *job.ImageSetJob) (*domain.ImageSet, error) {
 	generator.logger.Printf("Generating imageset from job: %v", job)
 
-	images, err := generator.store.GetImages()
+	images, err := generator.store.GetImages(job.Path)
 	if err != nil {
 		generator.logger.Printf("Failed to get imageset from store: %s", err)
 		return nil, err
@@ -94,7 +99,7 @@ func (generator ImageSetGenerator) Generate(job *job.ImageSetJob) (*domain.Image
 
 	imageSet := &domain.ImageSet{
 		ID:            imagesetID,
-		Name:          job.BucketName,
+		Name:          job.Path,
 		Description:   job.Description,
 		AverageColors: calculateAverageColors(images),
 	}

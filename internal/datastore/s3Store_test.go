@@ -68,7 +68,7 @@ func TestS3Store(t *testing.T) {
 				logger: log.New(log.Writer(), "test: ", log.LstdFlags),
 				api:    &mockS3Api{},
 			}
-			result, err := s3Store.GetImages()
+			result, err := s3Store.GetImages("test")
 			if err != nil {
 				t.Errorf("Error occurred: %v", err)
 			}

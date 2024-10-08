@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go/aws"
+
 	"github.com/pokemonpower92/collagegenerator/config"
 )
 
@@ -58,7 +59,7 @@ func NewS3Store() *S3Store {
 	}
 }
 
-func (store *S3Store) GetImages() ([]*image.RGBA, error) {
+func (store *S3Store) GetImages(filePath string) ([]*image.RGBA, error) {
 	output, err := store.api.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket: aws.String(store.Bucket),
 	})
