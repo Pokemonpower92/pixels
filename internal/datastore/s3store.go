@@ -34,7 +34,7 @@ type S3Store struct {
 	api    S3Api
 }
 
-func NewS3Store(bucket string) *S3Store {
+func NewS3Store() *S3Store {
 	s3Config := config.NewS3Config()
 
 	awsConfig, err := awsconf.LoadDefaultConfig(
@@ -52,7 +52,7 @@ func NewS3Store(bucket string) *S3Store {
 
 	client := s3.NewFromConfig(awsConfig)
 	return &S3Store{
-		Bucket: bucket,
+		Bucket: s3Config.Bucket,
 		api:    client,
 		logger: log.New(log.Writer(), "s3store ", log.LstdFlags),
 	}
