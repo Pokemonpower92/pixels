@@ -30,7 +30,6 @@ func (ish *ImageSetHandler) GetImageSets(w http.ResponseWriter, _ *http.Request)
 		return
 	}
 	ish.l.Printf("Found %d ImageSets.", len(imageSets))
-
 	encoder := json.NewEncoder(w)
 	err := encoder.Encode(imageSets)
 	if err != nil {
@@ -47,7 +46,6 @@ func (ish *ImageSetHandler) GetImageSetById(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
-
 	imageSet, ok := ish.repo.Get(id)
 	if !ok {
 		ish.l.Printf("ImageSet not found")
@@ -55,7 +53,6 @@ func (ish *ImageSetHandler) GetImageSetById(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	ish.l.Printf("Found ImageSet: %v", imageSet)
-
 	encoder := json.NewEncoder(w)
 	err = encoder.Encode(imageSet)
 	if err != nil {

@@ -11,7 +11,7 @@ GO_TEST=$(GO_CMD) test -cover
 db: vet
 	$(GO_CMD) run ./scripts/db/create_db.go
 
-stack_deploy: 
+stack_deploy: build 
 	sh ./build/localstack.sh -b
 
 stack_clean:
@@ -19,9 +19,6 @@ stack_clean:
 
 stack_start:
 	sh ./build/localstack.sh -s
-
-imagesetparser: vet
-	$(GO_BUILD) -C cmd/imagesetparser -o ../../bin/imagesetparser
 
 collageapi: vet
 	$(GO_BUILD) -C cmd/collageapi -o ../../bin/collageapi
@@ -39,7 +36,7 @@ clean:
 	$(GO_CLEAN) && \
 	rm ./bin/*
 
-build: imagesetparser collageapi
+build: collageapi
 all: vet build
 
 .PHONY: build fmt vet clean all

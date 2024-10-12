@@ -1,34 +1,34 @@
 #!/usr/bin/bash
 
 build_flag='false'
-start_flag='false'
+run_flag='false'
 clean_flag='false'
+stop_flag='false'
 
 network="collage"
 
 # Images 
-rmq_image="rabbitmq:3-management"
 postgres_image="postgres:13"
-imagesetparser_image="imagesetparser:latest"
+collageapi_image="collageapi:latest"
 
-images="$rmq_image $postgres_image $imagesetparser_image"
+images="$postgres_image $collageapi_image"
 
 # Containers
-rmq='collage_rabbitmq'
 db='collage_db'
-imagesetparser='imagesetparser'
+collageapi='collageapi'
 
-containers="$rmq $db $imagesetparser"
+containers="$db $collageapi"
 
 print_usage() {
   printf "Usage: ..."
 }
 
-while getopts 'bsc' flag; do
+while getopts 'brcs' flag; do
   case "${flag}" in
     b) build_flag='true' ;;
-    s) start_flag='true' ;;
+    r) run_flag='true' ;;
     c) clean_flag='true' ;;
+    s) stop_flag='true' ;;
     *) print_usage
        exit 1 ;;
   esac
@@ -59,33 +59,26 @@ if [[ $build_flag == 'true' ]]; then
       --network $network \
       $postgres_image
 
-    # Create the rabbitmq container
-    docker run -d \
-      --name $rmq \
-      -p 5672:5672 \
-      -p 15672:15672 \
-      -e RABBITMQ_DEFAULT_USER=guest \
-      -e RABBITMQ_DEFAULT_PASS=guest \
-      --network $network \
-      $rmq_image
-    
-     # Create the imagesetparser container
-    docker build -t $imagesetparser_image -f ./build/Dockerfile .
+     # Create the collageapi container
+    docker build -t $collageapi_image -f ./build/Dockerfile.api .
     docker run \
-        --name $imagesetparser \
+        --name $collageapi \
         --env-file ./.env.docker \
         --network $network \
-        $imagesetparser_image
+        $collageapi_image
 fi
 
-if [[ $start_flag == 'true' ]]; then
-    docker start $rmq
+if [[ $run_flag == 'true' ]]; then
     docker start $db
     sleep 5
-    docker start $imagesetparser
+    docker start $collageapi
 fi
 
 if [[ $clean_flag == 'true' ]]; then
    clean 
+fi
+
+if [[ $stop_flag == 'true' ]]; then
+    docker container stop $containers 
 fi
 
