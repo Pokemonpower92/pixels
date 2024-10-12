@@ -11,8 +11,14 @@ GO_TEST=$(GO_CMD) test -cover
 db: vet
 	$(GO_CMD) run ./scripts/db/create_db.go
 
-localstack: 
-	sh ./build/localstack.sh
+stack_deploy: 
+	sh ./build/localstack.sh -b
+
+stack_clean:
+	sh ./build/localstack.sh -c
+
+stack_run:
+	sh ./build/localstack.sh -r
 
 imagesetparser: vet
 	$(GO_BUILD) -C cmd/imagesetparser -o ../../bin/imagesetparser
