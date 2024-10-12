@@ -42,8 +42,19 @@ type S3Config struct {
 func NewS3Config() *S3Config {
 	return &S3Config{
 		Region:          os.Getenv("S3_REGION"),
+		Bucket:          os.Getenv("S3_BUCKET"),
 		AccessKeyID:     os.Getenv("S3_ACCESS_KEY_ID"),
 		SecretAccessKey: os.Getenv("S3_SECRET_ACCESS_KEY"),
+	}
+}
+
+type LocalStoreConfig struct {
+	Directory string
+}
+
+func NewLocalStoreConfig() *LocalStoreConfig {
+	return &LocalStoreConfig{
+		Directory: os.Getenv("LOCAL_STORE_DIRECTORY"),
 	}
 }
 

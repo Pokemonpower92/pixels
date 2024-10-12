@@ -21,7 +21,7 @@ func Start() {
 		panic(err)
 	}
 
-	store := datastore.NewS3Store("collagegenerator")
+	store := datastore.NewS3Store()
 
 	generatorLogger := log.New(log.Writer(), "generator: ", log.Flags())
 	g := generator.NewImageSetGenerator(generatorLogger, store)

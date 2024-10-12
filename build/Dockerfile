@@ -1,4 +1,4 @@
-FROM golang:1.21.3
+FROM golang:1.22
 WORKDIR /app
 
 EXPOSE 8080
@@ -8,6 +8,6 @@ RUN go mod download
 
 COPY . .
 
-RUN make
+RUN make build
 
 CMD ["./bin/imagesetparser"]
