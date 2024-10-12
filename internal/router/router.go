@@ -13,6 +13,6 @@ func NewRouter() *Router {
 	return &Router{Mux: sm}
 }
 
-func (r *Router) RegisterHandler(path string, handler http.Handler) {
-	r.Mux.Handle(path, handler)
+func (r *Router) RegisterHandler(path string, handler http.HandlerFunc) {
+	r.Mux.HandleFunc(path, handler)
 }

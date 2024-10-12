@@ -11,6 +11,7 @@ import (
 )
 
 func Start() {
+	config.LoadEnvironmentVariables()
 	r := router.NewRouter()
 	l := log.New(log.Writer(), "imagesethandler: ", log.LstdFlags)
 	c := config.NewPostgresConfig()
@@ -19,9 +20,8 @@ func Start() {
 		panic(err)
 	}
 	imageSetHandler := handler.NewImageSetHandler(l, repo)
-	imageSetsHandler := handler.NewImageSetsHandler(l, repo)
-	r.RegisterHandler("/imagesets", imageSetsHandler)
-	r.RegisterHandler("/imagesets/{id}", imageSetHandler)
+	r.RegisterHandler("GET /images/sets", imageSetHandler.GetImageSets)
+	r.RegisterHandler("GET /images/sets/{id}", imageSetHandler.GetImageSetById)
 
 	s := server.NewImageSetServer(r)
 	s.Start()

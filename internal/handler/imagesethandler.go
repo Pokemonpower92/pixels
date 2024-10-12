@@ -21,24 +21,25 @@ func NewImageSetHandler(l *log.Logger, repo isRepository) *ImageSetHandler {
 	return &ImageSetHandler{l: l, repo: repo}
 }
 
-func (ish *ImageSetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ish.l.Printf("Handling request: %s %s", r.Method, r.URL.Path)
+func (ish *ImageSetHandler) GetImageSets(w http.ResponseWriter, _ *http.Request) {
+	ish.l.Printf("Getting ImageSets")
+	imageSets, ok := ish.repo.GetAll()
+	if !ok {
+		ish.l.Printf("Failed to get ImageSets")
+		http.Error(w, "Error getting ImageSets", http.StatusInternalServerError)
+		return
+	}
+	ish.l.Printf("Found %d ImageSets.", len(imageSets))
 
-	switch r.Method {
-	case http.MethodGet:
-		ish.get(w, r)
-	case http.MethodPost:
-		ish.post(w, r)
-	case http.MethodPut:
-		ish.put(w, r)
-	case http.MethodDelete:
-		ish.delete(w, r)
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	encoder := json.NewEncoder(w)
+	err := encoder.Encode(imageSets)
+	if err != nil {
+		ish.l.Printf("Failed to encode ImageSets: %s", err)
+		http.Error(w, "Error encoding ImageSets", http.StatusInternalServerError)
 	}
 }
 
-func (ish *ImageSetHandler) get(w http.ResponseWriter, r *http.Request) {
+func (ish *ImageSetHandler) GetImageSetById(w http.ResponseWriter, r *http.Request) {
 	ish.l.Printf("Getting ImageSet by ID")
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
@@ -61,16 +62,4 @@ func (ish *ImageSetHandler) get(w http.ResponseWriter, r *http.Request) {
 		ish.l.Printf("Failed to encode ImageSet: %s", err)
 		http.Error(w, "Error encoding ImageSet", http.StatusInternalServerError)
 	}
-}
-
-func (ish *ImageSetHandler) post(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Post ImageSet\n"))
-}
-
-func (ish *ImageSetHandler) put(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Put ImageSet\n"))
-}
-
-func (ish *ImageSetHandler) delete(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Delete ImageSet\n"))
 }

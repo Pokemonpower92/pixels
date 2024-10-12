@@ -17,8 +17,8 @@ stack_deploy:
 stack_clean:
 	sh ./build/localstack.sh -c
 
-stack_run:
-	sh ./build/localstack.sh -r
+stack_start:
+	sh ./build/localstack.sh -s
 
 imagesetparser: vet
 	$(GO_BUILD) -C cmd/imagesetparser -o ../../bin/imagesetparser

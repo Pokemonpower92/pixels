@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/pokemonpower92/collagegenerator/config"
 	"github.com/pokemonpower92/collagegenerator/internal/domain"
 )
@@ -27,6 +28,11 @@ func getConnectionString(config *config.DBConfig) string {
 }
 
 func NewImageSetRepository(postgresConfig *config.DBConfig) (*ImageSetRepository, error) {
+	logger := log.New(
+		log.Writer(),
+		"ImageSetRepository: ",
+		log.LstdFlags,
+	)
 	connString := getConnectionString(postgresConfig)
 	client, err := pgxpool.New(
 		context.Background(),
@@ -35,11 +41,6 @@ func NewImageSetRepository(postgresConfig *config.DBConfig) (*ImageSetRepository
 	if err != nil {
 		return nil, err
 	}
-	logger := log.New(
-		log.Writer(),
-		"ImageSetRepository: ",
-		log.LstdFlags,
-	)
 	return &ImageSetRepository{client: client, logger: logger}, nil
 }
 
