@@ -7,21 +7,19 @@ GO_VET=$(GO_CMD) vet
 GO_CLEAN=$(GO_CMD) clean
 GO_FMT=$(GO_CMD) fmt
 GO_TEST=$(GO_CMD) test -cover
+LOCALSTACK_CMD=sh ./scripts/localstack.sh
 
 db: vet
 	$(GO_CMD) run ./scripts/db/create_db.go
 
 stack_deploy: 
-	sh ./build/localstack.sh -b
+	$(LOCALSTACK_CMD) -b
 
 stack_clean:
-	sh ./build/localstack.sh -c
+	$(LOCALSTACK_CMD) -c
 
-stack_run:
-	sh ./build/localstack.sh -r
-
-imagesetparser: vet
-	$(GO_BUILD) -C cmd/imagesetparser -o ../../bin/imagesetparser
+stack_start:
+	$(LOCALSTACK_CMD) -s
 
 collageapi: vet
 	$(GO_BUILD) -C cmd/collageapi -o ../../bin/collageapi
@@ -39,7 +37,7 @@ clean:
 	$(GO_CLEAN) && \
 	rm ./bin/*
 
-build: imagesetparser collageapi
+build: collageapi
 all: vet build
 
 .PHONY: build fmt vet clean all

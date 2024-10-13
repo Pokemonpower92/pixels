@@ -14,7 +14,7 @@ type ImageSetServer struct {
 
 func NewImageSetServer(router *router.Router) *ImageSetServer {
 	server := &http.Server{
-		Addr:    "localhost:8080",
+		Addr:    "localhost:8000",
 		Handler: router.Mux,
 	}
 

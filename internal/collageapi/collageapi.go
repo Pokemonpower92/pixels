@@ -1,8 +1,6 @@
 package collageapi
 
 import (
-	"log"
-
 	"github.com/pokemonpower92/collagegenerator/config"
 	"github.com/pokemonpower92/collagegenerator/internal/handler"
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
@@ -11,17 +9,21 @@ import (
 )
 
 func Start() {
+	config.LoadEnvironmentVariables()
 	r := router.NewRouter()
-	l := log.New(log.Writer(), "imagesethandler: ", log.LstdFlags)
 	c := config.NewPostgresConfig()
-	repo, err := repository.NewImageSetRepository(c)
+	isRepo, err := repository.NewImageSetRepository(c)
 	if err != nil {
 		panic(err)
 	}
-	imageSetHandler := handler.NewImageSetHandler(l, repo)
-	imageSetsHandler := handler.NewImageSetsHandler(l, repo)
-	r.RegisterHandler("/imagesets", imageSetsHandler)
-	r.RegisterHandler("/imagesets/{id}", imageSetHandler)
+	imageSetHandler := handler.NewImageSetHandler(isRepo)
+	r.RegisterHandler("GET /images/sets", imageSetHandler.GetImageSets)
+	r.RegisterHandler("GET /images/sets/{id}", imageSetHandler.GetImageSetById)
+
+	tiRepo, err := repository.NewTagrgetImageRepository(c)
+	targetImageHandler := handler.NewTargetImageHandler(tiRepo)
+	r.RegisterHandler("GET /images/targets", targetImageHandler.GetTargetImages)
+	r.RegisterHandler("GET /images/targets/{id}", targetImageHandler.GetTargetImageById)
 
 	s := server.NewImageSetServer(r)
 	s.Start()
