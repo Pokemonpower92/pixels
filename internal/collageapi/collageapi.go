@@ -23,6 +23,11 @@ func Start() {
 	r.RegisterHandler("GET /images/sets", imageSetHandler.GetImageSets)
 	r.RegisterHandler("GET /images/sets/{id}", imageSetHandler.GetImageSetById)
 
+	l = log.New(log.Writer(), "targetimagehandler", log.LstdFlags)
+	targetImageHandler := handler.NewTargetImageHandler(l, repo)
+	r.RegisterHandler("GET /images/targets", targetImageHandler.GetTargetImages)
+	r.RegisterHandler("GET /images/targets/{id}", targetImageHandler.GetTargetImageById)
+
 	s := server.NewImageSetServer(r)
 	s.Start()
 }
