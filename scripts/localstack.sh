@@ -9,15 +9,13 @@ network="collage"
 
 # Images 
 postgres_image="postgres:13"
-collageapi_image="collageapi:latest"
 
-images="$postgres_image $collageapi_image"
+images="$postgres_image"
 
 # Containers
 db='collage_db'
-collageapi='collageapi'
 
-containers="$db $collageapi"
+containers="$db"
 
 print_usage() {
   printf "Usage: ..."
@@ -58,20 +56,10 @@ if [[ $build_flag == 'true' ]]; then
       -v db:/var/lib/postgresql/data \
       --network $network \
       $postgres_image
-
-     # Create the collageapi container
-    docker build -t $collageapi_image -f ./build/Dockerfile.api .
-    docker run \
-        --name $collageapi \
-        --env-file ./.env.docker \
-        --network $network \
-        $collageapi_image
 fi
 
 if [[ $run_flag == 'true' ]]; then
     docker start $db
-    sleep 5
-    docker start $collageapi
 fi
 
 if [[ $clean_flag == 'true' ]]; then

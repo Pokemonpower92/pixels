@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/pokemonpower92/collagegenerator/config"
@@ -62,4 +63,44 @@ func main() {
 		panic(err)
 	}
 	log.Println("Database initialized successfully")
+
+	log.Println("Seeding...")
+	imq := fmt.Sprintf(
+		`INSERT INTO imagesets (
+            name,
+            description,
+            type
+    ) values (
+            '%s',
+            'A testing imageset',
+            'stock'
+    ) RETURNING id;`, uuid.New())
+	var id int
+	err = pool.QueryRow(context.Background(), imq).Scan(&id)
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("Found id: %d\n", id)
+
+	acq := fmt.Sprintf(
+		`INSERT INTO average_colors (
+            imageset_id,
+            file_name,
+            red,
+            green,
+            blue,
+            alpha
+    ) values (
+            %d,
+            'test',
+            1,
+            2,
+            3,
+            0
+    );`, id)
+	row, err := pool.Query(context.Background(), acq)
+	if err != nil {
+		panic(err)
+	}
+	defer row.Close()
 }

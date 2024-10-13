@@ -29,7 +29,7 @@ func (ish *ImageSetHandler) GetImageSets(w http.ResponseWriter, _ *http.Request)
 		http.Error(w, "Error getting ImageSets", http.StatusInternalServerError)
 		return
 	}
-	ish.l.Printf("Found %d ImageSets.", len(imageSets))
+	ish.l.Printf("Found %d ImageSets", len(imageSets))
 	encoder := json.NewEncoder(w)
 	err := encoder.Encode(imageSets)
 	if err != nil {
