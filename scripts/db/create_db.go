@@ -65,6 +65,7 @@ func main() {
 	log.Println("Database initialized successfully")
 
 	log.Println("Seeding...")
+	isn := uuid.New()
 	imq := fmt.Sprintf(
 		`INSERT INTO imagesets (
             name,
@@ -74,14 +75,13 @@ func main() {
             '%s',
             'A testing imageset',
             'stock'
-    ) RETURNING id;`, uuid.New())
+    ) RETURNING id;`, isn)
 	var id int
 	err = pool.QueryRow(context.Background(), imq).Scan(&id)
 	if err != nil {
 		panic(err)
 	}
 	log.Printf("Found id: %d\n", id)
-
 	acq := fmt.Sprintf(
 		`INSERT INTO average_colors (
             imageset_id,
@@ -98,9 +98,8 @@ func main() {
             3,
             0
     );`, id)
-	row, err := pool.Query(context.Background(), acq)
+	_, err = pool.Exec(context.Background(), acq)
 	if err != nil {
 		panic(err)
 	}
-	defer row.Close()
 }
