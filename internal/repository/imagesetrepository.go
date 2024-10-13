@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -17,23 +16,13 @@ type ImageSetRepository struct {
 	logger *log.Logger
 }
 
-func getConnectionString(config *config.DBConfig) string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
-		config.User,
-		config.Password,
-		config.Host,
-		config.Port,
-		config.DBName,
-	)
-}
-
 func NewImageSetRepository(postgresConfig *config.DBConfig) (*ImageSetRepository, error) {
 	logger := log.New(
 		log.Writer(),
 		"ImageSetRepository: ",
 		log.LstdFlags,
 	)
-	connString := getConnectionString(postgresConfig)
+	connString := GetConnectionString(postgresConfig)
 	client, err := pgxpool.New(
 		context.Background(),
 		connString,

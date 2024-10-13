@@ -6,18 +6,16 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/pokemonpower92/collagegenerator/internal/domain"
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 )
 
-type isRepository = repository.Repository[domain.ImageSet]
-
 type ImageSetHandler struct {
 	l    *log.Logger
-	repo isRepository
+	repo repository.ISRepo
 }
 
-func NewImageSetHandler(l *log.Logger, repo isRepository) *ImageSetHandler {
+func NewImageSetHandler(repo repository.ISRepo) *ImageSetHandler {
+	l := log.New(log.Writer(), "ImageSetHandler: ", log.LstdFlags)
 	return &ImageSetHandler{l: l, repo: repo}
 }
 
