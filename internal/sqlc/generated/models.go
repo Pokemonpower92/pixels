@@ -5,11 +5,28 @@
 package sqlc
 
 import (
-	"database/sql"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Author struct {
-	ID   int64
-	Name string
-	Bio  sql.NullString
+type AverageColor struct {
+	DbID       int32
+	ID         uuid.UUID
+	ImagesetID uuid.UUID
+	FileName   string
+	R          int32
+	G          int32
+	B          int32
+	A          int32
+	CreatedAt  pgtype.Date
+	UpdatedAt  pgtype.Date
+}
+
+type Imageset struct {
+	DbID        int32
+	ID          uuid.UUID
+	Name        string
+	Description string
+	CreatedAt   pgtype.Date
+	UpdatedAt   pgtype.Date
 }

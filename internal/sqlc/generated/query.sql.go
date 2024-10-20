@@ -7,94 +7,85 @@ package sqlc
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/google/uuid"
 )
 
-const createAuthor = `-- name: CreateAuthor :one
-INSERT INTO authors (
-  name, bio
+const createImageset = `-- name: CreateImageset :one
+INSERT INTO imagesets (
+  id, name, description, created_at, updated_at
 ) VALUES (
-  ?, ?
+  uuid_generate_v4(), $1, $2, NOW(), NOW() 
 )
-RETURNING id, name, bio
+RETURNING db_id, id, name, description, created_at, updated_at
 `
 
-type CreateAuthorParams struct {
-	Name string
-	Bio  sql.NullString
+type CreateImagesetParams struct {
+	Name        string
+	Description string
 }
 
-func (q *Queries) CreateAuthor(ctx context.Context, arg CreateAuthorParams) (Author, error) {
-	row := q.db.QueryRowContext(ctx, createAuthor, arg.Name, arg.Bio)
-	var i Author
-	err := row.Scan(&i.ID, &i.Name, &i.Bio)
+func (q *Queries) CreateImageset(ctx context.Context, arg CreateImagesetParams) (Imageset, error) {
+	row := q.db.QueryRow(ctx, createImageset, arg.Name, arg.Description)
+	var i Imageset
+	err := row.Scan(
+		&i.DbID,
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
-const deleteAuthor = `-- name: DeleteAuthor :exec
-DELETE FROM authors
-WHERE id = ?
+const getImageset = `-- name: GetImageset :one
+SELECT db_id, id, name, description, created_at, updated_at FROM imagesets
+WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) DeleteAuthor(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteAuthor, id)
-	return err
-}
-
-const getAuthor = `-- name: GetAuthor :one
-SELECT id, name, bio FROM authors
-WHERE id = ? LIMIT 1
-`
-
-func (q *Queries) GetAuthor(ctx context.Context, id int64) (Author, error) {
-	row := q.db.QueryRowContext(ctx, getAuthor, id)
-	var i Author
-	err := row.Scan(&i.ID, &i.Name, &i.Bio)
+func (q *Queries) GetImageset(ctx context.Context, id uuid.UUID) (Imageset, error) {
+	row := q.db.QueryRow(ctx, getImageset, id)
+	var i Imageset
+	err := row.Scan(
+		&i.DbID,
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
-const listAuthors = `-- name: ListAuthors :many
-SELECT id, name, bio FROM authors
+const listImageset = `-- name: ListImageset :many
+SELECT db_id, id, name, description, created_at, updated_at FROM imagesets
 ORDER BY name
 `
 
-func (q *Queries) ListAuthors(ctx context.Context) ([]Author, error) {
-	rows, err := q.db.QueryContext(ctx, listAuthors)
+func (q *Queries) ListImageset(ctx context.Context) ([]Imageset, error) {
+	rows, err := q.db.Query(ctx, listImageset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Author
+	var items []Imageset
 	for rows.Next() {
-		var i Author
-		if err := rows.Scan(&i.ID, &i.Name, &i.Bio); err != nil {
+		var i Imageset
+		if err := rows.Scan(
+			&i.DbID,
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 	return items, nil
-}
-
-const updateAuthor = `-- name: UpdateAuthor :exec
-UPDATE authors
-set name = ?,
-bio = ?
-WHERE id = ?
-`
-
-type UpdateAuthorParams struct {
-	Name string
-	Bio  sql.NullString
-	ID   int64
-}
-
-func (q *Queries) UpdateAuthor(ctx context.Context, arg UpdateAuthorParams) error {
-	_, err := q.db.ExecContext(ctx, updateAuthor, arg.Name, arg.Bio, arg.ID)
-	return err
 }

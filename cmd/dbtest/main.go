@@ -2,66 +2,59 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"log"
-	"reflect"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/pokemonpower92/collagegenerator/config"
+	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
 	"github.com/rubenv/sql-migrate"
 )
 
 func run() error {
+	config.LoadEnvironmentVariables()
 	ctx := context.Background()
+	postgresConfig := config.NewPostgresConfig()
+	connString := repository.GetConnectionString(postgresConfig)
 
-	conn, err := sql.Open("sqlite3", ":memory:")
+	// Create a connection config
+	config, err := pgx.ParseConfig(connString)
 	if err != nil {
 		return err
 	}
+
+	// Create a connection
+	conn, err := pgx.ConnectConfig(ctx, config)
+	if err != nil {
+		return err
+	}
+	defer conn.Close(ctx)
 
 	// Set up the migration source
 	migrations := &migrate.FileMigrationSource{
-		Dir: "internal/sqlc/migrations/sqlite3", // Adjust this path as needed
+		Dir: "internal/sqlc/migrations/postgres",
 	}
 
-	// Run the migrations
-	_, err = migrate.Exec(conn, "sqlite3", migrations, migrate.Up)
+	// Create a *sql.DB instance for migrations
+	db := stdlib.OpenDB(*config)
+	defer db.Close()
 
+	// Run the migrations
+	_, err = migrate.Exec(db, "postgres", migrations, migrate.Up)
 	if err != nil {
-		conn.Close()
 		return err
 	}
 
-	queries := sqlc.New(conn)
+	q := sqlc.New(conn)
 
 	// list all authors
-	authors, err := queries.ListAuthors(ctx)
+	authors, err := q.ListImageset(ctx)
 	if err != nil {
 		return err
 	}
 	log.Println(authors)
-
-	// create an author
-	insertedAuthor, err := queries.CreateAuthor(ctx, sqlc.CreateAuthorParams{
-		Name: "Brian Kernighan",
-		Bio: sql.NullString{
-			String: "Co-author of The C Programming Language and The Go Programming Language",
-			Valid:  true,
-		},
-	})
-	if err != nil {
-		return err
-	}
-	log.Println(insertedAuthor)
-
-	// get the author we just inserted
-	fetchedAuthor, err := queries.GetAuthor(ctx, insertedAuthor.ID)
-	if err != nil {
-		return err
-	}
-
-	// prints true
-	log.Println(reflect.DeepEqual(insertedAuthor, fetchedAuthor))
 	return nil
 }
 

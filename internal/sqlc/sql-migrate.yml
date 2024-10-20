@@ -1,5 +1,5 @@
 development:
-  dialect: sqlite3
+  dialect: postgres
   datasource: test.db
-  dir: db/migrations/sqlite3
+  dir: db/migrations/postgres
 

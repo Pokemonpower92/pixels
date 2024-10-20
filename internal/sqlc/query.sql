@@ -1,25 +1,16 @@
--- name: GetAuthor :one
-SELECT * FROM authors
-WHERE id = ? LIMIT 1;
+-- name: GetImageset :one
+SELECT * FROM imagesets
+WHERE id = $1 LIMIT 1;
 
--- name: ListAuthors :many
-SELECT * FROM authors
+-- name: ListImageset :many
+SELECT * FROM imagesets
 ORDER BY name;
 
--- name: CreateAuthor :one
-INSERT INTO authors (
-  name, bio
+-- name: CreateImageset :one
+INSERT INTO imagesets (
+  id, name, description, created_at, updated_at
 ) VALUES (
-  ?, ?
+  uuid_generate_v4(), $1, $2, NOW(), NOW() 
 )
 RETURNING *;
 
--- name: UpdateAuthor :exec
-UPDATE authors
-set name = ?,
-bio = ?
-WHERE id = ?;
-
--- name: DeleteAuthor :exec
-DELETE FROM authors
-WHERE id = ?;
