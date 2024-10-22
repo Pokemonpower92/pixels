@@ -21,13 +21,13 @@ func Start() {
 		panic(err)
 	}
 	imageSetHandler := handler.NewImageSetHandler(isRepo)
-	r.RegisterHandler("GET /images/sets", imageSetHandler.GetImageSets)
-	r.RegisterHandler("GET /images/sets/{id}", imageSetHandler.GetImageSetById)
+	r.RegisterRoute("GET /images/sets", imageSetHandler.GetImageSets)
+	r.RegisterRoute("GET /images/sets/{id}", imageSetHandler.GetImageSetById)
 
 	tiRepo, err := repository.NewTagrgetImageRepository(c, ctx)
 	targetImageHandler := handler.NewTargetImageHandler(tiRepo)
-	r.RegisterHandler("GET /images/targets", targetImageHandler.GetTargetImages)
-	r.RegisterHandler("GET /images/targets/{id}", targetImageHandler.GetTargetImageById)
+	r.RegisterRoute("GET /images/targets", targetImageHandler.GetTargetImages)
+	r.RegisterRoute("GET /images/targets/{id}", targetImageHandler.GetTargetImageById)
 
 	s := server.NewImageSetServer(r)
 	s.Start()
