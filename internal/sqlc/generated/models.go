@@ -30,3 +30,12 @@ type Imageset struct {
 	CreatedAt   pgtype.Date
 	UpdatedAt   pgtype.Date
 }
+
+type TargetImage struct {
+	DbID        int32
+	ID          uuid.UUID
+	Name        string
+	Description string
+	CreatedAt   pgtype.Date
+	UpdatedAt   pgtype.Date
+}

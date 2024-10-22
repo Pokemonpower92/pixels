@@ -3,16 +3,18 @@ package repository
 import (
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"github.com/pokemonpower92/collagegenerator/config"
-	"github.com/pokemonpower92/collagegenerator/internal/domain"
+	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
 )
 
 type Repository[O any] interface {
-	Get(id int) (*O, bool)
+	Get(id uuid.UUID) (*O, bool)
 	GetAll() ([]*O, bool)
 	Create(obj *O) error
-	Update(id int, obj *O) (*O, error)
-	Delete(id int) error
+	Update(id uuid.UUID, obj *O) (*O, error)
+	Delete(id uuid.UUID) error
 }
 
 func GetConnectionString(config *config.DBConfig) string {
@@ -26,6 +28,6 @@ func GetConnectionString(config *config.DBConfig) string {
 }
 
 type (
-	ISRepo Repository[domain.ImageSet]
-	TIRepo Repository[domain.TargetImage]
+	ISRepo Repository[sqlc.Imageset]
+	TIRepo Repository[sqlc.TargetImage]
 )

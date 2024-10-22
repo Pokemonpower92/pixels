@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
+
+	"github.com/google/uuid"
 
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 )
@@ -38,12 +39,7 @@ func (ish *ImageSetHandler) GetImageSets(w http.ResponseWriter, _ *http.Request)
 
 func (ish *ImageSetHandler) GetImageSetById(w http.ResponseWriter, r *http.Request) {
 	ish.l.Printf("Getting ImageSet by ID")
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		ish.l.Printf("Invalid ID: %s", err)
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
-		return
-	}
+	id := uuid.MustParse(r.PathValue("id"))
 	imageSet, ok := ish.repo.Get(id)
 	if !ok {
 		ish.l.Printf("ImageSet not found")
@@ -52,7 +48,7 @@ func (ish *ImageSetHandler) GetImageSetById(w http.ResponseWriter, r *http.Reque
 	}
 	ish.l.Printf("Found ImageSet: %v", imageSet)
 	encoder := json.NewEncoder(w)
-	err = encoder.Encode(imageSet)
+	err := encoder.Encode(imageSet)
 	if err != nil {
 		ish.l.Printf("Failed to encode ImageSet: %s", err)
 		http.Error(w, "Error encoding ImageSet", http.StatusInternalServerError)

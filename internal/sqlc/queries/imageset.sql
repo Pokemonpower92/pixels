@@ -2,7 +2,7 @@
 SELECT * FROM imagesets
 WHERE id = $1 LIMIT 1;
 
--- name: ListImageset :many
+-- name: ListImagesets :many
 SELECT * FROM imagesets
 ORDER BY name;
 

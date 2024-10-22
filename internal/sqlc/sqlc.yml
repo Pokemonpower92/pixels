@@ -1,13 +1,14 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    queries: "query.sql"
+    queries: "queries/"
     schema: "migrations/postgres"
     gen:
       go:
         package: "sqlc"
         out: "/generated"
         sql_package: "pgx/v5"
+        emit_result_struct_pointers: true
         overrides:
           - db_type: "uuid"
             go_type:
