@@ -9,8 +9,8 @@ GO_FMT=$(GO_CMD) fmt
 GO_TEST=$(GO_CMD) test -cover
 LOCALSTACK_CMD=sh ./scripts/localstack.sh
 
-db: vet
-	$(GO_CMD) run ./scripts/db/create_db.go
+migration: vet
+	$(GO_CMD) run ./scripts/migrate/migrate_db.go
 
 stack_deploy: 
 	$(LOCALSTACK_CMD) -b

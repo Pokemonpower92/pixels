@@ -1,0 +1,5 @@
+development:
+  dialect: postgres
+  datasource: test.db
+  dir: internal/sqlc/migrations/postgres
+

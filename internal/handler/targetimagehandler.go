@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
+
+	"github.com/google/uuid"
 
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 )
@@ -29,7 +30,7 @@ func (tih *TargetImageHandler) GetTargetImages(w http.ResponseWriter, _ *http.Re
 
 func (tih *TargetImageHandler) GetTargetImageById(w http.ResponseWriter, r *http.Request) {
 	tih.l.Printf("Getting TargetImage by ID")
-	id, err := strconv.Atoi(r.PathValue("id"))
+	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		tih.l.Printf("Invalid id: %s", err)
 		http.Error(w, "Invalid ID:", http.StatusInternalServerError)
