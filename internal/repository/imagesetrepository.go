@@ -15,9 +15,13 @@ import (
 type ImageSetRepository struct {
 	client *pgxpool.Pool
 	logger *log.Logger
+	ctx    context.Context
 }
 
-func NewImageSetRepository(postgresConfig *config.DBConfig) (*ImageSetRepository, error) {
+func NewImageSetRepository(
+	postgresConfig *config.DBConfig,
+	ctx context.Context,
+) (*ImageSetRepository, error) {
 	logger := log.New(
 		log.Writer(),
 		"ImageSetRepository: ",
@@ -31,7 +35,7 @@ func NewImageSetRepository(postgresConfig *config.DBConfig) (*ImageSetRepository
 	if err != nil {
 		return nil, err
 	}
-	return &ImageSetRepository{client: client, logger: logger}, nil
+	return &ImageSetRepository{client: client, logger: logger, ctx: ctx}, nil
 }
 
 func (isr *ImageSetRepository) Close() {

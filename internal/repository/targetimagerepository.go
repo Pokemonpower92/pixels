@@ -15,9 +15,13 @@ import (
 type TargeImageRepository struct {
 	client *pgxpool.Pool
 	logger *log.Logger
+	ctx    context.Context
 }
 
-func NewTagrgetImageRepository(pgConfig *config.DBConfig) (*TargeImageRepository, error) {
+func NewTagrgetImageRepository(
+	pgConfig *config.DBConfig,
+	ctx context.Context,
+) (*TargeImageRepository, error) {
 	logger := log.New(
 		log.Writer(),
 		"TargeImageRepository: ",
@@ -31,7 +35,7 @@ func NewTagrgetImageRepository(pgConfig *config.DBConfig) (*TargeImageRepository
 	if err != nil {
 		return nil, err
 	}
-	return &TargeImageRepository{client: client, logger: logger}, nil
+	return &TargeImageRepository{client: client, logger: logger, ctx: ctx}, nil
 }
 
 func (tir *TargeImageRepository) Get(id uuid.UUID) (*sqlc.TargetImage, bool) {
