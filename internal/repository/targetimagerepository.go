@@ -38,14 +38,14 @@ func NewTagrgetImageRepository(
 	return &TargeImageRepository{client: client, logger: logger, ctx: ctx}, nil
 }
 
-func (tir *TargeImageRepository) Get(id uuid.UUID) (*sqlc.TargetImage, bool) {
+func (tir *TargeImageRepository) Get(id uuid.UUID) (*sqlc.TargetImage, error) {
 	tir.logger.Printf("Get not implemented")
-	return nil, false
+	return nil, errors.New("Not implemented")
 }
 
-func (tir *TargeImageRepository) GetAll() ([]*sqlc.TargetImage, bool) {
+func (tir *TargeImageRepository) GetAll() ([]*sqlc.TargetImage, error) {
 	tir.logger.Printf("GetAll not implemented")
-	return nil, false
+	return nil, errors.New("Not implemented")
 }
 
 func (tir *TargeImageRepository) Create(targetImage *sqlc.TargetImage) error {

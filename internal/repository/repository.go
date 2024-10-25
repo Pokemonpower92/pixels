@@ -10,8 +10,8 @@ import (
 )
 
 type Repository[O any] interface {
-	Get(id uuid.UUID) (*O, bool)
-	GetAll() ([]*O, bool)
+	Get(id uuid.UUID) (*O, error)
+	GetAll() ([]*O, error)
 	Create(obj *O) error
 	Update(id uuid.UUID, obj *O) (*O, error)
 	Delete(id uuid.UUID) error
