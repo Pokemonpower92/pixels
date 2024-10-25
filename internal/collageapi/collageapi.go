@@ -25,6 +25,9 @@ func Start() {
 	r.RegisterRoute("GET /images/sets/{id}", imageSetHandler.GetImageSetById)
 
 	tiRepo, err := repository.NewTagrgetImageRepository(c, ctx)
+	if err != nil {
+		panic(err)
+	}
 	targetImageHandler := handler.NewTargetImageHandler(tiRepo)
 	r.RegisterRoute("GET /images/targets", targetImageHandler.GetTargetImages)
 	r.RegisterRoute("GET /images/targets/{id}", targetImageHandler.GetTargetImageById)

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -28,12 +27,6 @@ func (ish *ImageSetHandler) GetImageSets(w http.ResponseWriter, _ *http.Request)
 		return err
 	}
 	ish.l.Printf("Found %d ImageSets", len(imageSets))
-	encoder := json.NewEncoder(w)
-	err = encoder.Encode(imageSets)
-	if err != nil {
-		ish.l.Printf("Failed to encode ImageSets: %s", err)
-		return err
-	}
 	utils.WriteJson(w, http.StatusOK, imageSets)
 	return nil
 }
@@ -46,11 +39,6 @@ func (ish *ImageSetHandler) GetImageSetById(w http.ResponseWriter, r *http.Reque
 		return err
 	}
 	ish.l.Printf("Found ImageSet: %v", imageSet)
-	encoder := json.NewEncoder(w)
-	err = encoder.Encode(imageSet)
-	if err != nil {
-		return err
-	}
 	utils.WriteJson(w, http.StatusOK, imageSet)
 	return nil
 }

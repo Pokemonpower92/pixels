@@ -5,8 +5,16 @@ import (
 	"net/http"
 )
 
+type Response struct {
+	StatusCode int `json:"status_code"`
+	Data       any `json:"data"`
+}
+
 func WriteJson(w http.ResponseWriter, status int, val any) error {
+	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
-	w.Header().Set("Content-Type", "application/json")
-	return json.NewEncoder(w).Encode(val)
+	return json.NewEncoder(w).Encode(&Response{
+		StatusCode: status,
+		Data:       val,
+	})
 }
