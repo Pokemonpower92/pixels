@@ -21,8 +21,8 @@ RETURNING db_id, id, name, description, created_at, updated_at
 `
 
 type CreateTargetImageParams struct {
-	Name        string
-	Description string
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 func (q *Queries) CreateTargetImage(ctx context.Context, arg CreateTargetImageParams) (*TargetImage, error) {

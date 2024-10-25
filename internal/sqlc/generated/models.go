@@ -10,32 +10,32 @@ import (
 )
 
 type AverageColor struct {
-	DbID       int32
-	ID         uuid.UUID
-	ImagesetID uuid.UUID
-	FileName   string
-	R          int32
-	G          int32
-	B          int32
-	A          int32
-	CreatedAt  pgtype.Date
-	UpdatedAt  pgtype.Date
+	DbID       int32       `json:"db_id"`
+	ID         uuid.UUID   `json:"id"`
+	ImagesetID uuid.UUID   `json:"imageset_id"`
+	FileName   string      `json:"file_name"`
+	R          int32       `json:"r"`
+	G          int32       `json:"g"`
+	B          int32       `json:"b"`
+	A          int32       `json:"a"`
+	CreatedAt  pgtype.Date `json:"created_at"`
+	UpdatedAt  pgtype.Date `json:"updated_at"`
 }
 
 type Imageset struct {
-	DbID        int32
-	ID          uuid.UUID
-	Name        string
-	Description string
-	CreatedAt   pgtype.Date
-	UpdatedAt   pgtype.Date
+	DbID        int32       `json:"db_id"`
+	ID          uuid.UUID   `json:"id"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	CreatedAt   pgtype.Date `json:"created_at"`
+	UpdatedAt   pgtype.Date `json:"updated_at"`
 }
 
 type TargetImage struct {
-	DbID        int32
-	ID          uuid.UUID
-	Name        string
-	Description string
-	CreatedAt   pgtype.Date
-	UpdatedAt   pgtype.Date
+	DbID        int32       `json:"db_id"`
+	ID          uuid.UUID   `json:"id"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	CreatedAt   pgtype.Date `json:"created_at"`
+	UpdatedAt   pgtype.Date `json:"updated_at"`
 }

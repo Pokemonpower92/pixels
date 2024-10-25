@@ -42,26 +42,24 @@ func (isr *ImageSetRepository) Close() {
 	isr.client.Close()
 }
 
-func (isr *ImageSetRepository) Get(id uuid.UUID) (*sqlc.Imageset, bool) {
+func (isr *ImageSetRepository) Get(id uuid.UUID) (*sqlc.Imageset, error) {
 	ctx := context.Background()
 	q := sqlc.New(isr.client)
 	imageSet, err := q.GetImageset(ctx, id)
 	if err != nil {
-		isr.logger.Printf("Failed to get all imagesets: %s", err)
-		return nil, false
+		return nil, err
 	}
-	return imageSet, true
+	return imageSet, nil
 }
 
-func (isr *ImageSetRepository) GetAll() ([]*sqlc.Imageset, bool) {
+func (isr *ImageSetRepository) GetAll() ([]*sqlc.Imageset, error) {
 	ctx := context.Background()
 	q := sqlc.New(isr.client)
 	imageSets, err := q.ListImagesets(ctx)
 	if err != nil {
-		isr.logger.Printf("Failed to get all imagesets: %s", err)
-		return nil, false
+		return nil, err
 	}
-	return imageSets, true
+	return imageSets, nil
 }
 
 func (isr *ImageSetRepository) Create(is *sqlc.Imageset) error {

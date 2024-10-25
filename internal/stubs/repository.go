@@ -3,18 +3,18 @@ package stubs
 import "github.com/google/uuid"
 
 type RepositoryStub[O any] struct {
-	GetFunc    func(id uuid.UUID) (*O, bool)
-	GetAllFunc func() ([]*O, bool)
+	GetFunc    func(id uuid.UUID) (*O, error)
+	GetAllFunc func() ([]*O, error)
 	CreateFunc func(obj *O) error
 	UpdateFunc func(id uuid.UUID, obj *O) (*O, error)
 	DeleteFunc func(id uuid.UUID) error
 }
 
-func (r *RepositoryStub[O]) Get(id uuid.UUID) (*O, bool) {
+func (r *RepositoryStub[O]) Get(id uuid.UUID) (*O, error) {
 	return r.GetFunc(id)
 }
 
-func (r *RepositoryStub[O]) GetAll() ([]*O, bool) {
+func (r *RepositoryStub[O]) GetAll() ([]*O, error) {
 	return r.GetAllFunc()
 }
 
