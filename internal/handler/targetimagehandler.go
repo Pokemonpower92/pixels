@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
-	"github.com/pokemonpower92/collagegenerator/internal/utils"
+	"github.com/pokemonpower92/collagegenerator/internal/response"
 )
 
 type TargetImageHandler struct {
@@ -25,7 +25,7 @@ func NewTargetImageHandler(repo repository.TIRepo) *TargetImageHandler {
 
 func (tih *TargetImageHandler) GetTargetImages(w http.ResponseWriter, _ *http.Request) error {
 	tih.l.Printf("Getting TargetImages")
-	utils.WriteJson(w, http.StatusOK, "Got all target images")
+	response.WriteResponse(w, http.StatusOK, "Got all target images")
 	return nil
 }
 
@@ -33,10 +33,9 @@ func (tih *TargetImageHandler) GetTargetImageById(w http.ResponseWriter, r *http
 	tih.l.Printf("Getting TargetImage by ID")
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
-		tih.l.Printf("Invalid id: %s", err)
 		return err
 	}
 	tih.l.Printf("Got target image for id: %s", id)
-	utils.WriteJson(w, http.StatusOK, id)
+	response.WriteResponse(w, http.StatusOK, id)
 	return nil
 }

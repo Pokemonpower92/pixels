@@ -1,4 +1,4 @@
-package utils
+package response
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ type Response struct {
 	Data       any `json:"data"`
 }
 
-func WriteJson(w http.ResponseWriter, status int, val any) error {
+func WriteResponse(w http.ResponseWriter, status int, val any) error {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(&Response{

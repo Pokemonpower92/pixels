@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
-	"github.com/pokemonpower92/collagegenerator/internal/utils"
+	"github.com/pokemonpower92/collagegenerator/internal/response"
 )
 
 type ImageSetHandler struct {
@@ -27,18 +27,21 @@ func (ish *ImageSetHandler) GetImageSets(w http.ResponseWriter, _ *http.Request)
 		return err
 	}
 	ish.l.Printf("Found %d ImageSets", len(imageSets))
-	utils.WriteJson(w, http.StatusOK, imageSets)
+	response.WriteResponse(w, http.StatusOK, imageSets)
 	return nil
 }
 
 func (ish *ImageSetHandler) GetImageSetById(w http.ResponseWriter, r *http.Request) error {
 	ish.l.Printf("Getting ImageSet by ID")
-	id := uuid.MustParse(r.PathValue("id"))
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		return err
+	}
 	imageSet, err := ish.repo.Get(id)
 	if err != nil {
 		return err
 	}
 	ish.l.Printf("Found ImageSet: %v", imageSet)
-	utils.WriteJson(w, http.StatusOK, imageSet)
+	response.WriteResponse(w, http.StatusOK, imageSet)
 	return nil
 }
