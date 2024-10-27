@@ -77,10 +77,10 @@ func (tir *TargeImageRepository) Update(
 	req sqlc.CreateTargetImageParams,
 ) (*sqlc.TargetImage, error) {
 	tir.logger.Printf("Update not implemented")
-	return nil, errors.New("Update not implemented for TargetImages")
+	return nil, errors.New("Update not implemented for target images")
 }
 
 func (tir *TargeImageRepository) Delete(id uuid.UUID) error {
 	tir.logger.Printf("Delete not implemented")
-	return errors.New("Delete not implemented for TargetImages")
+	return errors.New("Delete not implemented for target images")
 }

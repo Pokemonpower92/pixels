@@ -7,25 +7,24 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"github.com/pokemonpower92/collagegenerator/config"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
 )
 
-type ImageSetRepository struct {
+type AverageColorRepository struct {
 	client *pgxpool.Pool
 	logger *log.Logger
 	ctx    context.Context
 	q      *sqlc.Queries
 }
 
-func NewImageSetRepository(
+func NewAverageColorRepository(
 	postgresConfig *config.DBConfig,
 	ctx context.Context,
-) (*ImageSetRepository, error) {
+) (*AverageColorRepository, error) {
 	logger := log.New(
 		log.Writer(),
-		"ImageSetRepository: ",
+		"AverageColorRepository: ",
 		log.LstdFlags,
 	)
 	connString := GetConnectionString(postgresConfig)
@@ -37,7 +36,7 @@ func NewImageSetRepository(
 		return nil, err
 	}
 	q := sqlc.New(client)
-	return &ImageSetRepository{
+	return &AverageColorRepository{
 		client: client,
 		logger: logger,
 		ctx:    ctx,
@@ -45,43 +44,45 @@ func NewImageSetRepository(
 	}, nil
 }
 
-func (isr *ImageSetRepository) Close() {
-	isr.client.Close()
+func (acr *AverageColorRepository) Close() {
+	acr.client.Close()
 }
 
-func (isr *ImageSetRepository) Get(id uuid.UUID) (*sqlc.Imageset, error) {
-	imageSet, err := isr.q.GetImageset(isr.ctx, id)
+func (acr *AverageColorRepository) Get(id uuid.UUID) (*sqlc.AverageColor, error) {
+	imageSet, err := acr.q.GetAverageColor(acr.ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	return imageSet, nil
 }
 
-func (isr *ImageSetRepository) GetAll() ([]*sqlc.Imageset, error) {
-	imageSets, err := isr.q.ListImagesets(isr.ctx)
+func (acr *AverageColorRepository) GetAll() ([]*sqlc.AverageColor, error) {
+	imageSets, err := acr.q.ListAverageColors(acr.ctx)
 	if err != nil {
 		return nil, err
 	}
 	return imageSets, nil
 }
 
-func (isr *ImageSetRepository) Create(req sqlc.CreateImagesetParams) (*sqlc.Imageset, error) {
-	imageset, err := isr.q.CreateImageset(isr.ctx, req)
+func (acr *AverageColorRepository) Create(
+	req sqlc.CreateAverageColorParams,
+) (*sqlc.AverageColor, error) {
+	imageset, err := acr.q.CreateAverageColor(acr.ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	return imageset, nil
 }
 
-func (isr *ImageSetRepository) Update(
+func (acr *AverageColorRepository) Update(
 	id uuid.UUID,
-	req sqlc.CreateImagesetParams,
-) (*sqlc.Imageset, error) {
-	isr.logger.Printf("Update not implemented for image set")
+	req sqlc.CreateAverageColorParams,
+) (*sqlc.AverageColor, error) {
+	acr.logger.Printf("Update not implemented for average color")
 	return nil, errors.New("Not implemented")
 }
 
-func (isr *ImageSetRepository) Delete(id uuid.UUID) error {
-	isr.logger.Printf("Delete not implemented for image set")
+func (acr *AverageColorRepository) Delete(id uuid.UUID) error {
+	acr.logger.Printf("Delete not implemented for average color")
 	return errors.New("Not implemented")
 }

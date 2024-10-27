@@ -16,6 +16,7 @@ func Start() {
 	r := router.NewRouter()
 	c := config.NewPostgresConfig()
 	ctx := context.Background()
+
 	isRepo, err := repository.NewImageSetRepository(c, ctx)
 	if err != nil {
 		panic(err)
@@ -33,6 +34,15 @@ func Start() {
 	r.RegisterRoute("POST /images/targets", targetImageHandler.CreateTargetImage)
 	r.RegisterRoute("GET /images/targets", targetImageHandler.GetTargetImages)
 	r.RegisterRoute("GET /images/targets/{id}", targetImageHandler.GetTargetImageById)
+
+	acRepo, err := repository.NewAverageColorRepository(c, ctx)
+	if err != nil {
+		panic(err)
+	}
+	averageColorHandler := handler.NewAverageColorHandler(acRepo)
+	r.RegisterRoute("POST /images/averagecolors", averageColorHandler.CreateAverageColor)
+	r.RegisterRoute("GET /images/averagecolors", averageColorHandler.GetAverageColors)
+	r.RegisterRoute("GET /images/averagecolors/{id}", averageColorHandler.GetAverageColorById)
 
 	s := server.NewImageSetServer(r)
 	s.Start()

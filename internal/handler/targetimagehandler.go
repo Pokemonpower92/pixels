@@ -62,6 +62,7 @@ func (tih *TargetImageHandler) CreateTargetImage(w http.ResponseWriter, r *http.
 	if err != nil {
 		return err
 	}
+	tih.l.Printf("Created target image with id: %s", targetImage.ID)
 	response.WriteResponse(w, http.StatusCreated, targetImage)
 	return nil
 }
