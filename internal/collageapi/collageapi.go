@@ -21,6 +21,7 @@ func Start() {
 		panic(err)
 	}
 	imageSetHandler := handler.NewImageSetHandler(isRepo)
+	r.RegisterRoute("POST /images/sets", imageSetHandler.CreateImageSet)
 	r.RegisterRoute("GET /images/sets", imageSetHandler.GetImageSets)
 	r.RegisterRoute("GET /images/sets/{id}", imageSetHandler.GetImageSetById)
 
@@ -29,6 +30,7 @@ func Start() {
 		panic(err)
 	}
 	targetImageHandler := handler.NewTargetImageHandler(tiRepo)
+	r.RegisterRoute("POST /images/targets", targetImageHandler.CreateTargetImage)
 	r.RegisterRoute("GET /images/targets", targetImageHandler.GetTargetImages)
 	r.RegisterRoute("GET /images/targets/{id}", targetImageHandler.GetTargetImageById)
 

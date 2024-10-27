@@ -9,6 +9,10 @@ GO_FMT=$(GO_CMD) fmt
 GO_TEST=$(GO_CMD) test -cover
 LOCALSTACK_CMD=sh ./scripts/localstack.sh
 
+
+run_collageapi:
+	$(GO_CMD) run ./cmd/collageapi/main.go
+
 migration: vet
 	$(GO_CMD) run ./scripts/migrate/migrate_db.go
 
