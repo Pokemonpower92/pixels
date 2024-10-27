@@ -16,6 +16,7 @@ type ImageSetRepository struct {
 	client *pgxpool.Pool
 	logger *log.Logger
 	ctx    context.Context
+	q      *sqlc.Queries
 }
 
 func NewImageSetRepository(
@@ -35,7 +36,13 @@ func NewImageSetRepository(
 	if err != nil {
 		return nil, err
 	}
-	return &ImageSetRepository{client: client, logger: logger, ctx: ctx}, nil
+	q := sqlc.New(client)
+	return &ImageSetRepository{
+		client: client,
+		logger: logger,
+		ctx:    ctx,
+		q:      q,
+	}, nil
 }
 
 func (isr *ImageSetRepository) Close() {
@@ -43,9 +50,7 @@ func (isr *ImageSetRepository) Close() {
 }
 
 func (isr *ImageSetRepository) Get(id uuid.UUID) (*sqlc.Imageset, error) {
-	ctx := context.Background()
-	q := sqlc.New(isr.client)
-	imageSet, err := q.GetImageset(ctx, id)
+	imageSet, err := isr.q.GetImageset(isr.ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -53,21 +58,25 @@ func (isr *ImageSetRepository) Get(id uuid.UUID) (*sqlc.Imageset, error) {
 }
 
 func (isr *ImageSetRepository) GetAll() ([]*sqlc.Imageset, error) {
-	ctx := context.Background()
-	q := sqlc.New(isr.client)
-	imageSets, err := q.ListImagesets(ctx)
+	imageSets, err := isr.q.ListImagesets(isr.ctx)
 	if err != nil {
 		return nil, err
 	}
 	return imageSets, nil
 }
 
-func (isr *ImageSetRepository) Create(is *sqlc.Imageset) error {
-	isr.logger.Printf("Create not implemented for imageset.\n")
-	return errors.New("Not implemented")
+func (isr *ImageSetRepository) Create(req sqlc.CreateImagesetParams) (*sqlc.Imageset, error) {
+	imageset, err := isr.q.CreateImageset(isr.ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return imageset, nil
 }
 
-func (isr *ImageSetRepository) Update(id uuid.UUID, is *sqlc.Imageset) (*sqlc.Imageset, error) {
+func (isr *ImageSetRepository) Update(
+	id uuid.UUID,
+	req sqlc.CreateImagesetParams,
+) (*sqlc.Imageset, error) {
 	isr.logger.Printf("Update not implemented for imageset.\n")
 	return nil, errors.New("Not implemented")
 }

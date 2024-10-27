@@ -9,11 +9,11 @@ import (
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
 )
 
-type Repository[O any] interface {
+type Repository[O, R any] interface {
 	Get(id uuid.UUID) (*O, error)
 	GetAll() ([]*O, error)
-	Create(obj *O) error
-	Update(id uuid.UUID, obj *O) (*O, error)
+	Create(req R) (*O, error)
+	Update(id uuid.UUID, req R) (*O, error)
 	Delete(id uuid.UUID) error
 }
 
@@ -28,6 +28,6 @@ func GetConnectionString(config *config.DBConfig) string {
 }
 
 type (
-	ISRepo Repository[sqlc.Imageset]
-	TIRepo Repository[sqlc.TargetImage]
+	ISRepo Repository[sqlc.Imageset, sqlc.CreateImagesetParams]
+	TIRepo Repository[sqlc.TargetImage, sqlc.CreateTargetImageParams]
 )

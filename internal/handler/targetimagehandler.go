@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -8,6 +9,7 @@ import (
 
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	"github.com/pokemonpower92/collagegenerator/internal/response"
+	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
 )
 
 type TargetImageHandler struct {
@@ -25,7 +27,12 @@ func NewTargetImageHandler(repo repository.TIRepo) *TargetImageHandler {
 
 func (tih *TargetImageHandler) GetTargetImages(w http.ResponseWriter, _ *http.Request) error {
 	tih.l.Printf("Getting TargetImages")
-	response.WriteResponse(w, http.StatusOK, "Got all target images")
+	targetImages, err := tih.repo.GetAll()
+	if err != nil {
+		return err
+	}
+	tih.l.Printf("Found %d target images.", len(targetImages))
+	response.WriteResponse(w, http.StatusOK, targetImages)
 	return nil
 }
 
@@ -35,7 +42,26 @@ func (tih *TargetImageHandler) GetTargetImageById(w http.ResponseWriter, r *http
 	if err != nil {
 		return err
 	}
-	tih.l.Printf("Got target image for id: %s", id)
-	response.WriteResponse(w, http.StatusOK, id)
+	targetImage, err := tih.repo.Get(id)
+	if err != nil {
+		return err
+	}
+	tih.l.Printf("Found TargetImage: %v", targetImage)
+	response.WriteResponse(w, http.StatusOK, targetImage)
+	return nil
+}
+
+func (tih *TargetImageHandler) CreateTargetImage(w http.ResponseWriter, r *http.Request) error {
+	tih.l.Printf("Creating targetimage.")
+	var req sqlc.CreateTargetImageParams
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		return nil
+	}
+	targetImage, err := tih.repo.Create(req)
+	if err != nil {
+		return err
+	}
+	response.WriteResponse(w, http.StatusCreated, targetImage)
 	return nil
 }

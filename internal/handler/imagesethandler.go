@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -8,6 +9,7 @@ import (
 
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	"github.com/pokemonpower92/collagegenerator/internal/response"
+	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
 )
 
 type ImageSetHandler struct {
@@ -43,5 +45,20 @@ func (ish *ImageSetHandler) GetImageSetById(w http.ResponseWriter, r *http.Reque
 	}
 	ish.l.Printf("Found ImageSet: %v", imageSet)
 	response.WriteResponse(w, http.StatusOK, imageSet)
+	return nil
+}
+
+func (ish *ImageSetHandler) CreateImageSet(w http.ResponseWriter, r *http.Request) error {
+	ish.l.Printf("Creating imageset.")
+	var req sqlc.CreateImagesetParams
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		return nil
+	}
+	imageSet, err := ish.repo.Create(req)
+	if err != nil {
+		return err
+	}
+	response.WriteResponse(w, http.StatusCreated, imageSet)
 	return nil
 }

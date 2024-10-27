@@ -16,6 +16,7 @@ type TargeImageRepository struct {
 	client *pgxpool.Pool
 	logger *log.Logger
 	ctx    context.Context
+	q      *sqlc.Queries
 }
 
 func NewTagrgetImageRepository(
@@ -35,27 +36,45 @@ func NewTagrgetImageRepository(
 	if err != nil {
 		return nil, err
 	}
-	return &TargeImageRepository{client: client, logger: logger, ctx: ctx}, nil
+	q := sqlc.New(client)
+	return &TargeImageRepository{
+		client: client,
+		logger: logger,
+		ctx:    ctx,
+		q:      q,
+	}, nil
 }
 
 func (tir *TargeImageRepository) Get(id uuid.UUID) (*sqlc.TargetImage, error) {
 	tir.logger.Printf("Get not implemented")
-	return nil, errors.New("Not implemented")
+	targetImage, err := tir.q.GetTargetImage(tir.ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return targetImage, nil
 }
 
 func (tir *TargeImageRepository) GetAll() ([]*sqlc.TargetImage, error) {
-	tir.logger.Printf("GetAll not implemented")
-	return nil, errors.New("Not implemented")
+	targetImages, err := tir.q.ListTargetImages(tir.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return targetImages, nil
 }
 
-func (tir *TargeImageRepository) Create(targetImage *sqlc.TargetImage) error {
-	tir.logger.Printf("Create not implemented")
-	return errors.New("Create not implemented for TargetImages")
+func (tir *TargeImageRepository) Create(
+	req sqlc.CreateTargetImageParams,
+) (*sqlc.TargetImage, error) {
+	targetImage, err := tir.q.CreateTargetImage(tir.ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return targetImage, nil
 }
 
 func (tir *TargeImageRepository) Update(
 	id uuid.UUID,
-	targetImage *sqlc.TargetImage,
+	req sqlc.CreateTargetImageParams,
 ) (*sqlc.TargetImage, error) {
 	tir.logger.Printf("Update not implemented")
 	return nil, errors.New("Update not implemented for TargetImages")
