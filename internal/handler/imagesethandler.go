@@ -59,6 +59,7 @@ func (ish *ImageSetHandler) CreateImageSet(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return err
 	}
+	ish.l.Printf("Created imageset with id: %s", imageSet.ID)
 	response.WriteResponse(w, http.StatusCreated, imageSet)
 	return nil
 }

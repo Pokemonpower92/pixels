@@ -30,4 +30,5 @@ func GetConnectionString(config *config.DBConfig) string {
 type (
 	ISRepo Repository[sqlc.Imageset, sqlc.CreateImagesetParams]
 	TIRepo Repository[sqlc.TargetImage, sqlc.CreateTargetImageParams]
+	ACRepo Repository[sqlc.AverageColor, sqlc.CreateAverageColorParams]
 )
