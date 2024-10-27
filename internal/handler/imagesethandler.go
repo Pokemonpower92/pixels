@@ -53,7 +53,7 @@ func (ish *ImageSetHandler) CreateImageSet(w http.ResponseWriter, r *http.Reques
 	var req sqlc.CreateImagesetParams
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		return nil
+		return err
 	}
 	imageSet, err := ish.repo.Create(req)
 	if err != nil {
