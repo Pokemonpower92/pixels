@@ -28,7 +28,8 @@ func GetConnectionString(config *config.DBConfig) string {
 }
 
 type (
-	ISRepo Repository[sqlc.Imageset, sqlc.CreateImagesetParams]
+	ISRepo Repository[sqlc.ImageSet, sqlc.CreateImageSetParams]
 	TIRepo Repository[sqlc.TargetImage, sqlc.CreateTargetImageParams]
 	ACRepo Repository[sqlc.AverageColor, sqlc.CreateAverageColorParams]
+	CRepo  Repository[sqlc.Collage, sqlc.CreateCollageParams]
 )

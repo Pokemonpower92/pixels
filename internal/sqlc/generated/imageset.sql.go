@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const createImageset = `-- name: CreateImageset :one
+const createImageSet = `-- name: CreateImageSet :one
 INSERT INTO image_sets (
   id, name, description, created_at, updated_at
 ) VALUES (
@@ -20,13 +20,13 @@ INSERT INTO image_sets (
 RETURNING db_id, id, name, description, created_at, updated_at
 `
 
-type CreateImagesetParams struct {
+type CreateImageSetParams struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
-func (q *Queries) CreateImageset(ctx context.Context, arg CreateImagesetParams) (*ImageSet, error) {
-	row := q.db.QueryRow(ctx, createImageset, arg.Name, arg.Description)
+func (q *Queries) CreateImageSet(ctx context.Context, arg CreateImageSetParams) (*ImageSet, error) {
+	row := q.db.QueryRow(ctx, createImageSet, arg.Name, arg.Description)
 	var i ImageSet
 	err := row.Scan(
 		&i.DbID,
@@ -39,13 +39,13 @@ func (q *Queries) CreateImageset(ctx context.Context, arg CreateImagesetParams) 
 	return &i, err
 }
 
-const getImageset = `-- name: GetImageset :one
+const getImageSet = `-- name: GetImageSet :one
 SELECT db_id, id, name, description, created_at, updated_at FROM image_sets
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetImageset(ctx context.Context, id uuid.UUID) (*ImageSet, error) {
-	row := q.db.QueryRow(ctx, getImageset, id)
+func (q *Queries) GetImageSet(ctx context.Context, id uuid.UUID) (*ImageSet, error) {
+	row := q.db.QueryRow(ctx, getImageSet, id)
 	var i ImageSet
 	err := row.Scan(
 		&i.DbID,
@@ -58,13 +58,13 @@ func (q *Queries) GetImageset(ctx context.Context, id uuid.UUID) (*ImageSet, err
 	return &i, err
 }
 
-const listimage_sets = `-- name: Listimage_sets :many
+const listImageSets = `-- name: ListImageSets :many
 SELECT db_id, id, name, description, created_at, updated_at FROM image_sets
 ORDER BY name
 `
 
-func (q *Queries) Listimage_sets(ctx context.Context) ([]*ImageSet, error) {
-	rows, err := q.db.Query(ctx, listimage_sets)
+func (q *Queries) ListImageSets(ctx context.Context) ([]*ImageSet, error) {
+	rows, err := q.db.Query(ctx, listImageSets)
 	if err != nil {
 		return nil, err
 	}

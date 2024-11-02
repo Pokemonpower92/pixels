@@ -49,24 +49,24 @@ func (isr *ImageSetRepository) Close() {
 	isr.client.Close()
 }
 
-func (isr *ImageSetRepository) Get(id uuid.UUID) (*sqlc.Imageset, error) {
-	imageSet, err := isr.q.GetImageset(isr.ctx, id)
+func (isr *ImageSetRepository) Get(id uuid.UUID) (*sqlc.ImageSet, error) {
+	imageSet, err := isr.q.GetImageSet(isr.ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	return imageSet, nil
 }
 
-func (isr *ImageSetRepository) GetAll() ([]*sqlc.Imageset, error) {
-	imageSets, err := isr.q.ListImagesets(isr.ctx)
+func (isr *ImageSetRepository) GetAll() ([]*sqlc.ImageSet, error) {
+	imageSets, err := isr.q.ListImageSets(isr.ctx)
 	if err != nil {
 		return nil, err
 	}
 	return imageSets, nil
 }
 
-func (isr *ImageSetRepository) Create(req sqlc.CreateImagesetParams) (*sqlc.Imageset, error) {
-	imageset, err := isr.q.CreateImageset(isr.ctx, req)
+func (isr *ImageSetRepository) Create(req sqlc.CreateImageSetParams) (*sqlc.ImageSet, error) {
+	imageset, err := isr.q.CreateImageSet(isr.ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -75,8 +75,8 @@ func (isr *ImageSetRepository) Create(req sqlc.CreateImagesetParams) (*sqlc.Imag
 
 func (isr *ImageSetRepository) Update(
 	id uuid.UUID,
-	req sqlc.CreateImagesetParams,
-) (*sqlc.Imageset, error) {
+	req sqlc.CreateImageSetParams,
+) (*sqlc.ImageSet, error) {
 	isr.logger.Printf("Update not implemented for image set")
 	return nil, errors.New("Not implemented")
 }

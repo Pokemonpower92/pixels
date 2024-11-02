@@ -14,10 +14,10 @@ import (
 
 type CollageHandler struct {
 	l    *log.Logger
-	repo repository.ACRepo
+	repo repository.CRepo
 }
 
-func NewCollageHandler(repo repository.ACRepo) *CollageHandler {
+func NewCollageHandler(repo repository.CRepo) *CollageHandler {
 	l := log.New(log.Writer(), "CollageHandler: ", log.LstdFlags)
 	return &CollageHandler{l: l, repo: repo}
 }
@@ -55,11 +55,11 @@ func (acr *CollageHandler) CreateCollage(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		return err
 	}
-	averageColor, err := acr.repo.Create(req)
+	collage, err := acr.repo.Create(req)
 	if err != nil {
 		return err
 	}
-	acr.l.Printf("Created Collage with id: %s", averageColor.ID)
-	response.WriteResponse(w, http.StatusCreated, averageColor)
+	acr.l.Printf("Created Collage with id: %s", collage.ID)
+	response.WriteResponse(w, http.StatusCreated, collage)
 	return nil
 }
