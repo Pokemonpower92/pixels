@@ -9,6 +9,7 @@ import (
 
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	"github.com/pokemonpower92/collagegenerator/internal/response"
+	"github.com/pokemonpower92/collagegenerator/internal/service"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
 )
 
@@ -60,6 +61,7 @@ func (acr *CollageHandler) CreateCollage(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 	acr.l.Printf("Created Collage with id: %s", collage.ID)
+	go service.CreateCollage(collage)
 	response.WriteResponse(w, http.StatusCreated, collage)
 	return nil
 }
