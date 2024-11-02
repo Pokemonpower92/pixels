@@ -22,7 +22,27 @@ type AverageColor struct {
 	UpdatedAt  pgtype.Date `json:"updated_at"`
 }
 
-type Imageset struct {
+type Collage struct {
+	DbID          int32       `json:"db_id"`
+	ID            uuid.UUID   `json:"id"`
+	Name          string      `json:"name"`
+	Description   string      `json:"description"`
+	ImageSetID    uuid.UUID   `json:"image_set_id"`
+	TargetImageID uuid.UUID   `json:"target_image_id"`
+	CreatedAt     pgtype.Date `json:"created_at"`
+	UpdatedAt     pgtype.Date `json:"updated_at"`
+}
+
+type CollageImage struct {
+	DbID      int32       `json:"db_id"`
+	ID        uuid.UUID   `json:"id"`
+	FileName  string      `json:"file_name"`
+	CollageID uuid.UUID   `json:"collage_id"`
+	CreatedAt pgtype.Date `json:"created_at"`
+	UpdatedAt pgtype.Date `json:"updated_at"`
+}
+
+type ImageSet struct {
 	DbID        int32       `json:"db_id"`
 	ID          uuid.UUID   `json:"id"`
 	Name        string      `json:"name"`

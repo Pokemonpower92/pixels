@@ -11,8 +11,8 @@ import (
 	"github.com/google/uuid"
 )
 
-const createImageset = `-- name: CreateImageset :one
-INSERT INTO imagesets (
+const createImageSet = `-- name: CreateImageSet :one
+INSERT INTO image_sets (
   id, name, description, created_at, updated_at
 ) VALUES (
   uuid_generate_v4(), $1, $2, NOW(), NOW() 
@@ -20,14 +20,14 @@ INSERT INTO imagesets (
 RETURNING db_id, id, name, description, created_at, updated_at
 `
 
-type CreateImagesetParams struct {
+type CreateImageSetParams struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
-func (q *Queries) CreateImageset(ctx context.Context, arg CreateImagesetParams) (*Imageset, error) {
-	row := q.db.QueryRow(ctx, createImageset, arg.Name, arg.Description)
-	var i Imageset
+func (q *Queries) CreateImageSet(ctx context.Context, arg CreateImageSetParams) (*ImageSet, error) {
+	row := q.db.QueryRow(ctx, createImageSet, arg.Name, arg.Description)
+	var i ImageSet
 	err := row.Scan(
 		&i.DbID,
 		&i.ID,
@@ -39,14 +39,14 @@ func (q *Queries) CreateImageset(ctx context.Context, arg CreateImagesetParams) 
 	return &i, err
 }
 
-const getImageset = `-- name: GetImageset :one
-SELECT db_id, id, name, description, created_at, updated_at FROM imagesets
+const getImageSet = `-- name: GetImageSet :one
+SELECT db_id, id, name, description, created_at, updated_at FROM image_sets
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetImageset(ctx context.Context, id uuid.UUID) (*Imageset, error) {
-	row := q.db.QueryRow(ctx, getImageset, id)
-	var i Imageset
+func (q *Queries) GetImageSet(ctx context.Context, id uuid.UUID) (*ImageSet, error) {
+	row := q.db.QueryRow(ctx, getImageSet, id)
+	var i ImageSet
 	err := row.Scan(
 		&i.DbID,
 		&i.ID,
@@ -58,20 +58,20 @@ func (q *Queries) GetImageset(ctx context.Context, id uuid.UUID) (*Imageset, err
 	return &i, err
 }
 
-const listImagesets = `-- name: ListImagesets :many
-SELECT db_id, id, name, description, created_at, updated_at FROM imagesets
+const listImageSets = `-- name: ListImageSets :many
+SELECT db_id, id, name, description, created_at, updated_at FROM image_sets
 ORDER BY name
 `
 
-func (q *Queries) ListImagesets(ctx context.Context) ([]*Imageset, error) {
-	rows, err := q.db.Query(ctx, listImagesets)
+func (q *Queries) ListImageSets(ctx context.Context) ([]*ImageSet, error) {
+	rows, err := q.db.Query(ctx, listImageSets)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*Imageset
+	var items []*ImageSet
 	for rows.Next() {
-		var i Imageset
+		var i ImageSet
 		if err := rows.Scan(
 			&i.DbID,
 			&i.ID,

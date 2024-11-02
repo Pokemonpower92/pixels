@@ -44,6 +44,15 @@ func Start() {
 	r.RegisterRoute("GET /images/averagecolors", averageColorHandler.GetAverageColors)
 	r.RegisterRoute("GET /images/averagecolors/{id}", averageColorHandler.GetAverageColorById)
 
+	cRepo, err := repository.NewCollageRepository(c, ctx)
+	if err != nil {
+		panic(err)
+	}
+	collageHandler := handler.NewCollageHandler(cRepo)
+	r.RegisterRoute("POST /images/collages", collageHandler.CreateCollage)
+	r.RegisterRoute("GET /images/collages", collageHandler.GetCollages)
+	r.RegisterRoute("GET /images/collages/{id}", collageHandler.GetCollageById)
+
 	s := server.NewImageSetServer(r)
 	s.Start()
 }

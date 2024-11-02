@@ -50,7 +50,7 @@ func (ish *ImageSetHandler) GetImageSetById(w http.ResponseWriter, r *http.Reque
 
 func (ish *ImageSetHandler) CreateImageSet(w http.ResponseWriter, r *http.Request) error {
 	ish.l.Printf("Creating imageset.")
-	var req sqlc.CreateImagesetParams
+	var req sqlc.CreateImageSetParams
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		return err
