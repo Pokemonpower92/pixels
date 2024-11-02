@@ -12,7 +12,7 @@ import (
 )
 
 const createImageset = `-- name: CreateImageset :one
-INSERT INTO imagesets (
+INSERT INTO image_sets (
   id, name, description, created_at, updated_at
 ) VALUES (
   uuid_generate_v4(), $1, $2, NOW(), NOW() 
@@ -25,9 +25,9 @@ type CreateImagesetParams struct {
 	Description string `json:"description"`
 }
 
-func (q *Queries) CreateImageset(ctx context.Context, arg CreateImagesetParams) (*Imageset, error) {
+func (q *Queries) CreateImageset(ctx context.Context, arg CreateImagesetParams) (*ImageSet, error) {
 	row := q.db.QueryRow(ctx, createImageset, arg.Name, arg.Description)
-	var i Imageset
+	var i ImageSet
 	err := row.Scan(
 		&i.DbID,
 		&i.ID,
@@ -40,13 +40,13 @@ func (q *Queries) CreateImageset(ctx context.Context, arg CreateImagesetParams) 
 }
 
 const getImageset = `-- name: GetImageset :one
-SELECT db_id, id, name, description, created_at, updated_at FROM imagesets
+SELECT db_id, id, name, description, created_at, updated_at FROM image_sets
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetImageset(ctx context.Context, id uuid.UUID) (*Imageset, error) {
+func (q *Queries) GetImageset(ctx context.Context, id uuid.UUID) (*ImageSet, error) {
 	row := q.db.QueryRow(ctx, getImageset, id)
-	var i Imageset
+	var i ImageSet
 	err := row.Scan(
 		&i.DbID,
 		&i.ID,
@@ -58,20 +58,20 @@ func (q *Queries) GetImageset(ctx context.Context, id uuid.UUID) (*Imageset, err
 	return &i, err
 }
 
-const listImagesets = `-- name: ListImagesets :many
-SELECT db_id, id, name, description, created_at, updated_at FROM imagesets
+const listimage_sets = `-- name: Listimage_sets :many
+SELECT db_id, id, name, description, created_at, updated_at FROM image_sets
 ORDER BY name
 `
 
-func (q *Queries) ListImagesets(ctx context.Context) ([]*Imageset, error) {
-	rows, err := q.db.Query(ctx, listImagesets)
+func (q *Queries) Listimage_sets(ctx context.Context) ([]*ImageSet, error) {
+	rows, err := q.db.Query(ctx, listimage_sets)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*Imageset
+	var items []*ImageSet
 	for rows.Next() {
-		var i Imageset
+		var i ImageSet
 		if err := rows.Scan(
 			&i.DbID,
 			&i.ID,
