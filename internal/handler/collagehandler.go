@@ -23,44 +23,44 @@ func NewCollageHandler(repo repository.CRepo) *CollageHandler {
 	return &CollageHandler{l: l, repo: repo}
 }
 
-func (acr *CollageHandler) GetCollages(w http.ResponseWriter, _ *http.Request) error {
-	acr.l.Printf("Getting Collages")
-	imageSets, err := acr.repo.GetAll()
+func (ch *CollageHandler) GetCollages(w http.ResponseWriter, _ *http.Request) error {
+	ch.l.Printf("Getting Collages")
+	imageSets, err := ch.repo.GetAll()
 	if err != nil {
 		return err
 	}
-	acr.l.Printf("Found %d Collages", len(imageSets))
+	ch.l.Printf("Found %d Collages", len(imageSets))
 	response.WriteResponse(w, http.StatusOK, imageSets)
 	return nil
 }
 
-func (acr *CollageHandler) GetCollageById(w http.ResponseWriter, r *http.Request) error {
-	acr.l.Printf("Getting Collage by ID")
+func (ch *CollageHandler) GetCollageById(w http.ResponseWriter, r *http.Request) error {
+	ch.l.Printf("Getting Collage by ID")
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		return err
 	}
-	averageColor, err := acr.repo.Get(id)
+	averageColor, err := ch.repo.Get(id)
 	if err != nil {
 		return err
 	}
-	acr.l.Printf("Found Collage: %v", averageColor)
+	ch.l.Printf("Found Collage: %v", averageColor)
 	response.WriteResponse(w, http.StatusOK, averageColor)
 	return nil
 }
 
-func (acr *CollageHandler) CreateCollage(w http.ResponseWriter, r *http.Request) error {
-	acr.l.Printf("Creating Collage.")
+func (ch *CollageHandler) CreateCollage(w http.ResponseWriter, r *http.Request) error {
+	ch.l.Printf("Creating Collage.")
 	var req sqlc.CreateCollageParams
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		return err
 	}
-	collage, err := acr.repo.Create(req)
+	collage, err := ch.repo.Create(req)
 	if err != nil {
 		return err
 	}
-	acr.l.Printf("Created Collage with id: %s", collage.ID)
+	ch.l.Printf("Created Collage with id: %s", collage.ID)
 	go service.CreateCollage(collage)
 	response.WriteResponse(w, http.StatusCreated, collage)
 	return nil
