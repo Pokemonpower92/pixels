@@ -7,16 +7,17 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	"github.com/pokemonpower92/collagegenerator/internal/response"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
 )
 
 type AverageColorHandler struct {
 	l    *log.Logger
-	repo repository.achepo
+	repo repository.ACRepo
 }
 
-func NewAverageColorHandler(repo repository.achepo) *AverageColorHandler {
+func NewAverageColorHandler(repo repository.ACRepo) *AverageColorHandler {
 	l := log.New(log.Writer(), "AverageColorHandler: ", log.LstdFlags)
 	return &AverageColorHandler{l: l, repo: repo}
 }
