@@ -4,23 +4,21 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/pokemonpower92/collagegenerator/internal/response"
+	"github.com/pokemonpower92/collagegenerator/internal/middleware"
 )
 
-type apiFunc func(http.ResponseWriter, *http.Request) error
+type ApiFunc func(http.ResponseWriter, *http.Request) error
 
 type ApiError struct {
 	Error string
 }
 
-func makeHttpHandler(f apiFunc) http.HandlerFunc {
-	logger := log.New(log.Writer(), "TargetImageHandler: ", log.LstdFlags)
-	return func(w http.ResponseWriter, h *http.Request) {
-		if err := f(w, h); err != nil {
-			logger.Printf("Error making http request to %s: %s", h.URL, err)
-			response.WriteResponse(w, http.StatusInternalServerError, ApiError{Error: err.Error()})
+func makeHttpHandler(h ApiFunc) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := h(w, r); err != nil {
+			panic(err)
 		}
-	}
+	})
 }
 
 type Router struct {
@@ -32,6 +30,12 @@ func NewRouter() *Router {
 	return &Router{Mux: sm}
 }
 
-func (r *Router) RegisterRoute(path string, handler apiFunc) {
-	r.Mux.HandleFunc(path, makeHttpHandler(handler))
+func (r *Router) RegisterRoute(path string, handler ApiFunc) {
+	handlerFunc := makeHttpHandler(handler)
+	stdMiddleware := middleware.New(
+		middleware.Logger(log.New(log.Writer(), "", log.LstdFlags)),
+		middleware.Error(),
+	)
+	handlerFunc = stdMiddleware.Use(handlerFunc)
+	r.Mux.HandleFunc(path, handlerFunc.ServeHTTP)
 }

@@ -19,7 +19,7 @@ type CollageHandler struct {
 }
 
 func NewCollageHandler(repo repository.CRepo) *CollageHandler {
-	l := log.New(log.Writer(), "CollageHandler: ", log.LstdFlags)
+	l := log.New(log.Writer(), "", log.LstdFlags)
 	return &CollageHandler{l: l, repo: repo}
 }
 
