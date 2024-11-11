@@ -18,7 +18,7 @@ type ImageSetHandler struct {
 }
 
 func NewImageSetHandler(repo repository.ISRepo) *ImageSetHandler {
-	l := log.New(log.Writer(), "ImageSetHandler: ", log.LstdFlags)
+	l := log.New(log.Writer(), "", log.LstdFlags)
 	return &ImageSetHandler{l: l, repo: repo}
 }
 

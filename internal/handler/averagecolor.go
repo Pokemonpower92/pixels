@@ -18,7 +18,7 @@ type AverageColorHandler struct {
 }
 
 func NewAverageColorHandler(repo repository.ACRepo) *AverageColorHandler {
-	l := log.New(log.Writer(), "AverageColorHandler: ", log.LstdFlags)
+	l := log.New(log.Writer(), "", log.LstdFlags)
 	return &AverageColorHandler{l: l, repo: repo}
 }
 

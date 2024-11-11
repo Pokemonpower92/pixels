@@ -18,7 +18,7 @@ type TargetImageHandler struct {
 }
 
 func NewTargetImageHandler(repo repository.TIRepo) *TargetImageHandler {
-	l := log.New(log.Writer(), "TargetImageHandler: ", log.LstdFlags)
+	l := log.New(log.Writer(), "", log.LstdFlags)
 	return &TargetImageHandler{
 		l:    l,
 		repo: repo,
@@ -56,7 +56,7 @@ func (tih *TargetImageHandler) CreateTargetImage(w http.ResponseWriter, r *http.
 	var req sqlc.CreateTargetImageParams
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		return nil
+		return err
 	}
 	targetImage, err := tih.repo.Create(req)
 	if err != nil {
