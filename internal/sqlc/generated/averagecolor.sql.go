@@ -77,6 +77,42 @@ func (q *Queries) GetAverageColor(ctx context.Context, id uuid.UUID) (*AverageCo
 	return &i, err
 }
 
+const getByImageSetId = `-- name: GetByImageSetId :many
+SELECT db_id, id, imageset_id, file_name, r, g, b, a, created_at, updated_at FROM average_colors
+WHERE imageset_id = $1
+`
+
+func (q *Queries) GetByImageSetId(ctx context.Context, imagesetID uuid.UUID) ([]*AverageColor, error) {
+	rows, err := q.db.Query(ctx, getByImageSetId, imagesetID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*AverageColor
+	for rows.Next() {
+		var i AverageColor
+		if err := rows.Scan(
+			&i.DbID,
+			&i.ID,
+			&i.ImagesetID,
+			&i.FileName,
+			&i.R,
+			&i.G,
+			&i.B,
+			&i.A,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAverageColors = `-- name: ListAverageColors :many
 SELECT db_id, id, imageset_id, file_name, r, g, b, a, created_at, updated_at FROM average_colors
 ORDER BY file_name
