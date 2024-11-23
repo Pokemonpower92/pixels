@@ -56,6 +56,14 @@ func (acr *AverageColorRepository) Get(id uuid.UUID) (*sqlc.AverageColor, error)
 	return imageSet, nil
 }
 
+func (acr *AverageColorRepository) GetByImageSetId(id uuid.UUID) ([]*sqlc.AverageColor, error) {
+	imageSets, err := acr.q.GetByImageSetId(acr.ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return imageSets, nil
+}
+
 func (acr *AverageColorRepository) GetAll() ([]*sqlc.AverageColor, error) {
 	imageSets, err := acr.q.ListAverageColors(acr.ctx)
 	if err != nil {

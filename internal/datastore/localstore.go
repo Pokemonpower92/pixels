@@ -1,12 +1,15 @@
 package datastore
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"image/draw"
 	_ "image/png"
 	"log"
 	"os"
+
+	"github.com/google/uuid"
 )
 
 type LocalStore struct {
@@ -31,32 +34,28 @@ func imageToRGBA(src image.Image) *image.RGBA {
 	return dst
 }
 
-func (s *LocalStore) GetImages(filePath string) ([]*image.RGBA, error) {
+func (s *LocalStore) GetImage(id uuid.UUID) (*image.RGBA, error) {
+	fileName := fmt.Sprintf("%s.png", id.String())
 	s.logger.Printf("Reading images from directory: %s", s.Directory)
-	d, err := os.ReadDir(s.Directory)
+	path := fmt.Sprintf("%s/%s", s.Directory, fileName)
+	s.logger.Printf("Decoding file %s", path)
+	f, err := os.Open(path)
 	if err != nil {
-		s.logger.Printf("Failed to open directory: %s", err)
+		s.logger.Printf("Failed to open file: %s", fileName)
 		return nil, err
 	}
-	imageSet := make([]*image.RGBA, 0)
-	for i, item := range d {
-		path := fmt.Sprintf("%s/%s", s.Directory, item.Name())
-		s.logger.Printf("Decoding file %d: %s", i, path)
-		f, err := os.Open(path)
-		if err != nil {
-			s.logger.Printf("Failed to open file: %s", item.Name())
-			return nil, err
-		}
-		defer f.Close()
-		im, _, err := image.Decode(f)
-		if err != nil {
-			s.logger.Printf("Failed to decode image: %s", err)
-			return nil, err
-		}
-		b := im.Bounds()
-		rgba := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
-		draw.Draw(rgba, rgba.Bounds(), im, b.Min, draw.Src)
-		imageSet = append(imageSet, rgba)
+	defer f.Close()
+	im, _, err := image.Decode(f)
+	if err != nil {
+		s.logger.Printf("Failed to decode image: %s", err)
+		return nil, err
 	}
-	return imageSet, nil
+	b := im.Bounds()
+	rgba := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+	draw.Draw(rgba, rgba.Bounds(), im, b.Min, draw.Src)
+	return rgba, nil
+}
+
+func (s *LocalStore) PutImage(id uuid.UUID, image *image.RGBA) error {
+	return errors.New("Not implemented")
 }

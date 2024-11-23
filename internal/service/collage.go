@@ -2,49 +2,17 @@ package service
 
 import (
 	"context"
+	"errors"
 	"log"
-	"strings"
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pokemonpower92/collagegenerator/config"
 	"github.com/pokemonpower92/collagegenerator/internal/datastore"
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
 )
-
-type collageService struct {
-	l                *log.Logger
-	collage          *sqlc.Collage
-	imageSetRepo     repository.ISRepo
-	targetImageRepo  repository.TIRepo
-	collageImageRepo repository.CRepo
-	store            datastore.Store
-}
-
-func newCollageService(collage *sqlc.Collage, serviceContext context.Context) *collageService {
-	postgresConfig := config.NewPostgresConfig()
-	l := log.New(log.Writer(), "CollageService: ", log.LstdFlags)
-	isRepo, err := repository.NewImageSetRepository(postgresConfig, serviceContext)
-	if err != nil {
-		l.Fatalf("Failed to create image set repository with error: %s", err)
-	}
-	tiRepo, err := repository.NewTagrgetImageRepository(postgresConfig, serviceContext)
-	if err != nil {
-		l.Fatalf("Failed to create target image repository with error: %s", err)
-	}
-	ciRepo, err := repository.NewCollageRepository(postgresConfig, serviceContext)
-	if err != nil {
-		l.Fatalf("Failed to create collage repository with error: %s", err)
-	}
-	return &collageService{
-		l:                l,
-		collage:          collage,
-		imageSetRepo:     isRepo,
-		targetImageRepo:  tiRepo,
-		collageImageRepo: ciRepo,
-	}
-}
 
 func CreateCollage(collage *sqlc.Collage) {
 	serviceContext, cancel := context.WithTimeout(context.Background(), time.Second*30)
@@ -54,21 +22,62 @@ func CreateCollage(collage *sqlc.Collage) {
 	service.placeImagesInCollage()
 }
 
+type collageService struct {
+	l             *log.Logger
+	collage       *sqlc.Collage
+	averageColors []*sqlc.AverageColor
+	store         datastore.Store
+	imageMap      map[int]string
+}
+
+func getAverageColors(
+	imageSetId uuid.UUID,
+	serviceContext context.Context,
+) ([]*sqlc.AverageColor, error) {
+	postgresConfig := config.NewPostgresConfig()
+	acRepo, err := repository.NewAverageColorRepository(postgresConfig, serviceContext)
+	if err != nil {
+		return nil, errors.New("Failed to get average colors")
+	}
+	averageColors, err := acRepo.GetAll()
+	if err != nil {
+		return nil, errors.New("Failed to get average colors")
+	}
+	return averageColors, nil
+}
+
+func newCollageService(
+	collage *sqlc.Collage,
+	serviceContext context.Context,
+) *collageService {
+	l := log.New(log.Writer(), "", log.LstdFlags)
+	averageColors, err := getAverageColors(collage.ImageSetID, serviceContext)
+	if err != nil {
+		l.Fatalf("Failed to get image set images")
+	}
+	store := datastore.NewStore()
+	imageMap := make(map[int]string)
+	return &collageService{
+		l:             l,
+		collage:       collage,
+		averageColors: averageColors,
+		store:         store,
+		imageMap:      imageMap,
+	}
+}
+
 // Find the image set image that best fits the given
 // section of the target image
 func (cs *collageService) findImageForSection(section int) {
 	cs.l.Printf("Finding image for section: %d.\n", section)
+	// Calculate the average color of the section.
 }
 
 // Calculate the number of sections the target image can
 // be split into given the configured resolution of the
 // collage
 func (cs *collageService) calculateSections() int {
-	targetImage, err := cs.targetImageRepo.Get(cs.collage.TargetImageID)
-	if err != nil {
-		cs.l.Fatalf("Failed to get target image with error: %s\n", err)
-	}
-	return len(strings.Split(targetImage.Name, ""))
+	return 1
 }
 
 // Find out what image set image goes where in the collage.
