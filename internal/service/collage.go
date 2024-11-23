@@ -39,7 +39,7 @@ func getAverageColors(
 	if err != nil {
 		return nil, errors.New("Failed to get average colors")
 	}
-	averageColors, err := acRepo.GetAll()
+	averageColors, err := acRepo.GetByImageSetId(imageSetId)
 	if err != nil {
 		return nil, errors.New("Failed to get average colors")
 	}
