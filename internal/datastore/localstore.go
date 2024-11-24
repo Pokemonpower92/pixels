@@ -36,13 +36,11 @@ func imageToRGBA(src image.Image) *image.RGBA {
 }
 
 func (s *LocalStore) GetImage(id uuid.UUID) (*image.RGBA, error) {
-	fileName := fmt.Sprintf("%s.png", id.String())
-	s.logger.Printf("Reading images from directory: %s", s.Directory)
-	path := fmt.Sprintf("%s/%s", s.Directory, fileName)
-	s.logger.Printf("Decoding file %s", path)
+	path := fmt.Sprintf("%s/%s", s.Directory, id.String())
+	s.logger.Printf("Getting file: %s", path)
 	f, err := os.Open(path)
 	if err != nil {
-		s.logger.Printf("Failed to open file: %s", fileName)
+		s.logger.Printf("Failed to open file: %s", id.String())
 		return nil, err
 	}
 	defer f.Close()
