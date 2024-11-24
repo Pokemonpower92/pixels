@@ -3,6 +3,7 @@ package datastore
 import (
 	"image"
 	_ "image/jpeg"
+	"io"
 	"os"
 
 	"github.com/google/uuid"
@@ -12,7 +13,7 @@ import (
 // for retrieving and storing images.
 type Store interface {
 	GetImage(id uuid.UUID) (*image.RGBA, error)
-	PutImage(id uuid.UUID, image *image.RGBA) error
+	PutImage(id uuid.UUID, reader io.Reader) error
 }
 
 type StoreFunc = func() Store

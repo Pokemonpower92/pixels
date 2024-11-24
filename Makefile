@@ -39,7 +39,8 @@ test:
 
 clean:
 	$(GO_CLEAN) && \
-	rm ./bin/*
+	rm ./bin/* && \
+	rm ./resources/*
 
 build: collageapi
 all: vet build

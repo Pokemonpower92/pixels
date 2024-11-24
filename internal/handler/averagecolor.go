@@ -1,25 +1,30 @@
 package handler
 
 import (
-	"encoding/json"
+	"bytes"
+	"io"
 	"log"
 	"net/http"
 
 	"github.com/google/uuid"
 
+	"github.com/pokemonpower92/collagegenerator/internal/datastore"
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	"github.com/pokemonpower92/collagegenerator/internal/response"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
+	"github.com/pokemonpower92/collagegenerator/internal/utils"
 )
 
 type AverageColorHandler struct {
-	l    *log.Logger
-	repo repository.ACRepo
+	l     *log.Logger
+	repo  repository.ACRepo
+	store datastore.Store
 }
 
 func NewAverageColorHandler(repo repository.ACRepo) *AverageColorHandler {
 	l := log.New(log.Writer(), "", log.LstdFlags)
-	return &AverageColorHandler{l: l, repo: repo}
+	store := datastore.NewStore()
+	return &AverageColorHandler{l: l, repo: repo, store: store}
 }
 
 func (ach *AverageColorHandler) GetAverageColors(w http.ResponseWriter, _ *http.Request) error {
@@ -49,17 +54,43 @@ func (ach *AverageColorHandler) GetAverageColorById(w http.ResponseWriter, r *ht
 }
 
 func (ach *AverageColorHandler) CreateAverageColor(w http.ResponseWriter, r *http.Request) error {
-	ach.l.Printf("Creating AverageColor.")
-	var req sqlc.CreateAverageColorParams
-	err := json.NewDecoder(r.Body).Decode(&req)
+	ach.l.Printf("Creating AverageColor")
+	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
 		return err
 	}
-	averageColor, err := ach.repo.Create(req)
+	file, handle, err := r.FormFile("file")
 	if err != nil {
 		return err
 	}
-	ach.l.Printf("Created AverageColor with id: %s", averageColor.ID)
+	defer file.Close()
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
+	reader := bytes.NewReader(fileBytes)
+	image, err := utils.ImageFileToRGBA(reader)
+	if err != nil {
+		return err
+	}
+	average := utils.CalculateAverageColor(image)
+	imageSetId := uuid.MustParse(r.FormValue("imageSetId"))
+	dbParams := sqlc.CreateAverageColorParams{
+		ImagesetID: imageSetId,
+		FileName:   handle.Filename,
+		R:          int32(average.R),
+		G:          int32(average.G),
+		B:          int32(average.B),
+		A:          int32(average.A),
+	}
+	averageColor, err := ach.repo.Create(dbParams)
+	if err != nil {
+		return err
+	}
+	if err := ach.store.PutImage(averageColor.ID, reader); err != nil {
+		return err
+	}
+	ach.l.Printf("Created AverageColor with id: %s", averageColor.ID.String())
 	response.WriteResponse(w, http.StatusCreated, averageColor)
 	return nil
 }
