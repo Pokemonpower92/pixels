@@ -45,6 +45,10 @@ func NewTagrgetImageRepository(
 	}, nil
 }
 
+func (tir *TargeImageRepository) Close() {
+	tir.client.Close()
+}
+
 func (tir *TargeImageRepository) Get(id uuid.UUID) (*sqlc.TargetImage, error) {
 	tir.logger.Printf("Get not implemented")
 	targetImage, err := tir.q.GetTargetImage(tir.ctx, id)
