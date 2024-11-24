@@ -9,6 +9,8 @@ GO_FMT=$(GO_CMD) fmt
 GO_TEST=$(GO_CMD) test -cover
 LOCALSTACK_CMD=sh ./scripts/localstack.sh
 
+start_collageapi:
+	./bin/collageapi
 
 run_collageapi:
 	$(GO_CMD) run ./cmd/collageapi/main.go
@@ -42,7 +44,9 @@ clean:
 	rm ./bin/* && \
 	rm ./resources/*
 
+
 build: collageapi
+start: vet build stack_deploy start_collageapi
 all: vet build
 
 .PHONY: build fmt vet clean all

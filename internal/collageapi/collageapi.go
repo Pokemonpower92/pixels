@@ -21,6 +21,7 @@ func Start() {
 	if err != nil {
 		panic(err)
 	}
+	defer isRepo.Close()
 	imageSetHandler := handler.NewImageSetHandler(isRepo)
 	r.RegisterRoute("POST /images/sets", imageSetHandler.CreateImageSet)
 	r.RegisterRoute("GET /images/sets", imageSetHandler.GetImageSets)
@@ -30,6 +31,7 @@ func Start() {
 	if err != nil {
 		panic(err)
 	}
+	defer tiRepo.Close()
 	targetImageHandler := handler.NewTargetImageHandler(tiRepo)
 	r.RegisterRoute("POST /images/targets", targetImageHandler.CreateTargetImage)
 	r.RegisterRoute("GET /images/targets", targetImageHandler.GetTargetImages)
@@ -39,6 +41,7 @@ func Start() {
 	if err != nil {
 		panic(err)
 	}
+	defer acRepo.Close()
 	averageColorHandler := handler.NewAverageColorHandler(acRepo)
 	r.RegisterRoute("POST /images/averagecolors", averageColorHandler.CreateAverageColor)
 	r.RegisterRoute("GET /images/averagecolors", averageColorHandler.GetAverageColors)
@@ -48,6 +51,7 @@ func Start() {
 	if err != nil {
 		panic(err)
 	}
+	defer cRepo.Close()
 	collageHandler := handler.NewCollageHandler(cRepo)
 	r.RegisterRoute("POST /images/collages", collageHandler.CreateCollage)
 	r.RegisterRoute("GET /images/collages", collageHandler.GetCollages)
