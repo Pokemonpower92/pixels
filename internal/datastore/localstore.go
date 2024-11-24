@@ -1,13 +1,14 @@
 package datastore
 
 import (
-	"errors"
 	"fmt"
 	"image"
 	"image/draw"
 	_ "image/png"
+	"io"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/google/uuid"
 )
@@ -20,7 +21,7 @@ type LocalStore struct {
 func NewLocalStore(directory string) *LocalStore {
 	return &LocalStore{
 		Directory: directory,
-		logger:    log.New(log.Writer(), "localstore ", log.LstdFlags),
+		logger:    log.New(log.Writer(), "", log.LstdFlags),
 	}
 }
 
@@ -56,6 +57,16 @@ func (s *LocalStore) GetImage(id uuid.UUID) (*image.RGBA, error) {
 	return rgba, nil
 }
 
-func (s *LocalStore) PutImage(id uuid.UUID, image *image.RGBA) error {
-	return errors.New("Not implemented")
+func (s *LocalStore) PutImage(id uuid.UUID, reader io.Reader) error {
+	dst, err := os.Create(filepath.Join(s.Directory, id.String()))
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+	s.logger.Printf("Created image destination: %s", dst.Name())
+	if _, err := io.Copy(dst, reader); err != nil {
+		return err
+	}
+	s.logger.Printf("Successfully stored image.")
+	return nil
 }

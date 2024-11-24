@@ -9,6 +9,7 @@
 *.dylib
 
 data/*
+resources/*
 
 # Test binary, build with `go test -c`
 *.test
