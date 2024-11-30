@@ -15,12 +15,13 @@ const createAverageColor = `-- name: CreateAverageColor :one
 INSERT INTO average_colors (
   id, imageset_id, file_name, r, g, b, a, created_at, updated_at
 ) VALUES (
-  uuid_generate_v4(), $1, $2, $3, $4, $5, $6, NOW(), NOW() 
+  $1, $2, $3, $4, $5, $6, $7, NOW(), NOW() 
 )
 RETURNING db_id, id, imageset_id, file_name, r, g, b, a, created_at, updated_at
 `
 
 type CreateAverageColorParams struct {
+	ID         uuid.UUID `json:"id"`
 	ImagesetID uuid.UUID `json:"imageset_id"`
 	FileName   string    `json:"file_name"`
 	R          int32     `json:"r"`
@@ -31,6 +32,7 @@ type CreateAverageColorParams struct {
 
 func (q *Queries) CreateAverageColor(ctx context.Context, arg CreateAverageColorParams) (*AverageColor, error) {
 	row := q.db.QueryRow(ctx, createAverageColor,
+		arg.ID,
 		arg.ImagesetID,
 		arg.FileName,
 		arg.R,

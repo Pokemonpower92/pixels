@@ -50,7 +50,7 @@ func (ch *CollageHandler) GetCollageById(w http.ResponseWriter, r *http.Request)
 }
 
 func (ch *CollageHandler) CreateCollage(w http.ResponseWriter, r *http.Request) error {
-	ch.l.Printf("Creating Collage.")
+	ch.l.Printf("Creating Collage")
 	var req sqlc.CreateCollageParams
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {

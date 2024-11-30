@@ -15,18 +15,19 @@ const createTargetImage = `-- name: CreateTargetImage :one
 INSERT INTO target_images (
   id, name, description, created_at, updated_at
 ) VALUES (
-  uuid_generate_v4(), $1, $2, NOW(), NOW() 
+  $1, $2, $3, NOW(), NOW() 
 )
 RETURNING db_id, id, name, description, created_at, updated_at
 `
 
 type CreateTargetImageParams struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
 }
 
 func (q *Queries) CreateTargetImage(ctx context.Context, arg CreateTargetImageParams) (*TargetImage, error) {
-	row := q.db.QueryRow(ctx, createTargetImage, arg.Name, arg.Description)
+	row := q.db.QueryRow(ctx, createTargetImage, arg.ID, arg.Name, arg.Description)
 	var i TargetImage
 	err := row.Scan(
 		&i.DbID,

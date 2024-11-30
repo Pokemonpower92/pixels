@@ -14,7 +14,7 @@ ORDER BY file_name;
 INSERT INTO average_colors (
   id, imageset_id, file_name, r, g, b, a, created_at, updated_at
 ) VALUES (
-  uuid_generate_v4(), $1, $2, $3, $4, $5, $6, NOW(), NOW() 
+  $1, $2, $3, $4, $5, $6, $7, NOW(), NOW() 
 )
 RETURNING *;
 

@@ -10,7 +10,7 @@ ORDER BY name;
 INSERT INTO target_images (
   id, name, description, created_at, updated_at
 ) VALUES (
-  uuid_generate_v4(), $1, $2, NOW(), NOW() 
+  $1, $2, $3, NOW(), NOW() 
 )
 RETURNING *;
 
