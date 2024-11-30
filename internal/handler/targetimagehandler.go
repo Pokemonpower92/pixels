@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -11,6 +12,12 @@ import (
 	"github.com/pokemonpower92/collagegenerator/internal/response"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
 )
+
+type CreateTargetImageRequest struct {
+	Name          string    `json:"name"`
+	Description   string    `json:"description"`
+	TargetImageId uuid.UUID `json:"targetimage_id"`
+}
 
 type TargetImageHandler struct {
 	l     *log.Logger
@@ -55,27 +62,21 @@ func (tih *TargetImageHandler) GetTargetImageById(w http.ResponseWriter, r *http
 }
 
 func (tih *TargetImageHandler) CreateTargetImage(w http.ResponseWriter, r *http.Request) error {
-	tih.l.Printf("Creating TargetImage")
-	err := r.ParseMultipartForm(32 << 20)
+	tih.l.Printf("Creating targetimage")
+	var req CreateTargetImageRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		return err
 	}
-	dbParams := sqlc.CreateTargetImageParams{
-		Name:        r.FormValue("name"),
-		Description: r.FormValue("description"),
-	}
-	targetImage, err := tih.repo.Create(dbParams)
+	targetImage, err := tih.repo.Create(sqlc.CreateTargetImageParams{
+		ID:          req.TargetImageId,
+		Name:        req.Name,
+		Description: req.Description,
+	})
 	if err != nil {
 		return err
 	}
-	file, _, err := r.FormFile("file")
-	if err != nil {
-		return err
-	}
-	if err := tih.store.PutImage(targetImage.ID, file); err != nil {
-		return err
-	}
-	tih.l.Printf("Created target image with id: %s", targetImage.ID.String())
+	tih.l.Printf("Created target image with id: %s", targetImage.ID)
 	response.WriteResponse(w, http.StatusCreated, targetImage)
 	return nil
 }

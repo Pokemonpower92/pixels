@@ -15,6 +15,12 @@ start_collageapi:
 run_collageapi:
 	$(GO_CMD) run ./cmd/collageapi/main.go
 
+start_imageapi:
+	./bin/imageapi
+
+run_imageapi:
+	$(GO_CMD) run ./cmd/imageapi/main.go
+
 migration: vet
 	$(GO_CMD) run ./scripts/migrate/migrate_db.go
 
@@ -29,6 +35,9 @@ stack_start:
 
 collageapi: vet
 	$(GO_BUILD) -C cmd/collageapi -o ../../bin/collageapi
+
+imageapi: vet
+	$(GO_BUILD) -C cmd/imageapi -o ../../bin/imageapi
 
 vet: fmt
 	$(GO_VET) ./...
@@ -45,8 +54,8 @@ clean:
 	rm ./resources/*
 
 
-build: collageapi
-start: vet build stack_deploy start_collageapi
+build: collageapi imageapi
+start: vet build stack_deploy start_collageapi start_imageapi
 all: vet build
 
 .PHONY: build fmt vet clean all

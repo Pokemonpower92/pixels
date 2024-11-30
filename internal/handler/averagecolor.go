@@ -1,8 +1,7 @@
 package handler
 
 import (
-	"bytes"
-	"io"
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -14,6 +13,11 @@ import (
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
 	"github.com/pokemonpower92/collagegenerator/internal/utils"
 )
+
+type CreateAverageColorRequest struct {
+	ImagesetID     uuid.UUID `json:"imageset_id"`
+	AverageColorID uuid.UUID `json:"averagecolor_id"`
+}
 
 type AverageColorHandler struct {
 	l     *log.Logger
@@ -55,42 +59,26 @@ func (ach *AverageColorHandler) GetAverageColorById(w http.ResponseWriter, r *ht
 
 func (ach *AverageColorHandler) CreateAverageColor(w http.ResponseWriter, r *http.Request) error {
 	ach.l.Printf("Creating AverageColor")
-	err := r.ParseMultipartForm(32 << 20)
+	var req CreateAverageColorRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		return err
 	}
-	file, handle, err := r.FormFile("file")
+	image, err := ach.store.GetImage(req.AverageColorID)
+	averages := utils.CalculateAverageColor(image)
+	averageColor, err := ach.repo.Create(sqlc.CreateAverageColorParams{
+		ID:         req.AverageColorID,
+		ImagesetID: req.ImagesetID,
+		FileName:   req.AverageColorID.String(),
+		R:          int32(averages.R),
+		G:          int32(averages.G),
+		B:          int32(averages.B),
+		A:          int32(averages.A),
+	})
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-	fileBytes, err := io.ReadAll(file)
-	if err != nil {
-		return err
-	}
-	reader := bytes.NewReader(fileBytes)
-	image, err := utils.ImageFileToRGBA(reader)
-	if err != nil {
-		return err
-	}
-	average := utils.CalculateAverageColor(image)
-	imageSetId := uuid.MustParse(r.FormValue("imageSetId"))
-	dbParams := sqlc.CreateAverageColorParams{
-		ImagesetID: imageSetId,
-		FileName:   handle.Filename,
-		R:          int32(average.R),
-		G:          int32(average.G),
-		B:          int32(average.B),
-		A:          int32(average.A),
-	}
-	averageColor, err := ach.repo.Create(dbParams)
-	if err != nil {
-		return err
-	}
-	if err := ach.store.PutImage(averageColor.ID, reader); err != nil {
-		return err
-	}
-	ach.l.Printf("Created AverageColor with id: %s", averageColor.ID.String())
+	ach.l.Printf("Created AverageColor with id: %s", averageColor.ID)
 	response.WriteResponse(w, http.StatusCreated, averageColor)
 	return nil
 }

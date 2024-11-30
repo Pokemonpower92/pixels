@@ -23,9 +23,9 @@ func Start() {
 	}
 	defer isRepo.Close()
 	imageSetHandler := handler.NewImageSetHandler(isRepo)
-	r.RegisterRoute("POST /images/sets", imageSetHandler.CreateImageSet)
-	r.RegisterRoute("GET /images/sets", imageSetHandler.GetImageSets)
-	r.RegisterRoute("GET /images/sets/{id}", imageSetHandler.GetImageSetById)
+	r.RegisterRoute("POST /imagesets", imageSetHandler.CreateImageSet)
+	r.RegisterRoute("GET /imagesets", imageSetHandler.GetImageSets)
+	r.RegisterRoute("GET /imagesets/{id}", imageSetHandler.GetImageSetById)
 
 	tiRepo, err := repository.NewTagrgetImageRepository(c, ctx)
 	if err != nil {
@@ -33,9 +33,9 @@ func Start() {
 	}
 	defer tiRepo.Close()
 	targetImageHandler := handler.NewTargetImageHandler(tiRepo)
-	r.RegisterRoute("POST /images/targets", targetImageHandler.CreateTargetImage)
-	r.RegisterRoute("GET /images/targets", targetImageHandler.GetTargetImages)
-	r.RegisterRoute("GET /images/targets/{id}", targetImageHandler.GetTargetImageById)
+	r.RegisterRoute("POST /targets", targetImageHandler.CreateTargetImage)
+	r.RegisterRoute("GET /targets", targetImageHandler.GetTargetImages)
+	r.RegisterRoute("GET /targets/{id}", targetImageHandler.GetTargetImageById)
 
 	acRepo, err := repository.NewAverageColorRepository(c, ctx)
 	if err != nil {
@@ -43,9 +43,9 @@ func Start() {
 	}
 	defer acRepo.Close()
 	averageColorHandler := handler.NewAverageColorHandler(acRepo)
-	r.RegisterRoute("POST /images/averagecolors", averageColorHandler.CreateAverageColor)
-	r.RegisterRoute("GET /images/averagecolors", averageColorHandler.GetAverageColors)
-	r.RegisterRoute("GET /images/averagecolors/{id}", averageColorHandler.GetAverageColorById)
+	r.RegisterRoute("POST /averagecolors", averageColorHandler.CreateAverageColor)
+	r.RegisterRoute("GET /averagecolors", averageColorHandler.GetAverageColors)
+	r.RegisterRoute("GET /averagecolors/{id}", averageColorHandler.GetAverageColorById)
 
 	cRepo, err := repository.NewCollageRepository(c, ctx)
 	if err != nil {
@@ -53,10 +53,10 @@ func Start() {
 	}
 	defer cRepo.Close()
 	collageHandler := handler.NewCollageHandler(cRepo)
-	r.RegisterRoute("POST /images/collages", collageHandler.CreateCollage)
-	r.RegisterRoute("GET /images/collages", collageHandler.GetCollages)
-	r.RegisterRoute("GET /images/collages/{id}", collageHandler.GetCollageById)
+	r.RegisterRoute("POST /collages", collageHandler.CreateCollage)
+	r.RegisterRoute("GET /collages", collageHandler.GetCollages)
+	r.RegisterRoute("GET /collages/{id}", collageHandler.GetCollageById)
 
-	s := server.NewImageSetServer(r)
+	s := server.NewCollageServer(r)
 	s.Start()
 }

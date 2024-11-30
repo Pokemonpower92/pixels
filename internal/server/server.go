@@ -7,27 +7,39 @@ import (
 	"github.com/pokemonpower92/collagegenerator/internal/router"
 )
 
-type ImageSetServer struct {
+type Server struct {
 	server *http.Server
 	router *router.Router
 }
 
-func NewImageSetServer(router *router.Router) *ImageSetServer {
+func (s *Server) Start() {
+	log.Printf("Starting server on %s", s.server.Addr)
+	err := s.server.ListenAndServe()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func NewCollageServer(router *router.Router) *Server {
 	server := &http.Server{
 		Addr:    "localhost:8000",
 		Handler: router.Mux,
 	}
 
-	return &ImageSetServer{
+	return &Server{
 		server: server,
 		router: router,
 	}
 }
 
-func (iss *ImageSetServer) Start() {
-	log.Printf("Starting server on %s", iss.server.Addr)
-	err := iss.server.ListenAndServe()
-	if err != nil {
-		panic(err)
+func NewImageServer(router *router.Router) *Server {
+	server := &http.Server{
+		Addr:    "localhost:8004",
+		Handler: router.Mux,
+	}
+
+	return &Server{
+		server: server,
+		router: router,
 	}
 }
