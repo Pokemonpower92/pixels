@@ -1,12 +1,9 @@
-package utils
+package imageprocessing
 
 import (
 	"image"
 	"image/color"
 	"image/draw"
-	"io"
-	"os"
-	"strings"
 	"testing"
 )
 
@@ -65,71 +62,6 @@ func TestCalculateAverageColor(t *testing.T) {
 	}
 }
 
-func TestImageFileToRGBA(t *testing.T) {
-	testCases := []struct {
-		name     string
-		input    func() io.Reader
-		wantErr  bool
-		expected *color.RGBA // Use pointer to handle nil case for errors
-	}{
-		{
-			name: "Success - Red PNG",
-			input: func() io.Reader {
-				f, _ := os.Open("../../testimages/RED.png")
-				return f
-			},
-			wantErr:  false,
-			expected: &color.RGBA{R: 255, G: 0, B: 0, A: 255},
-		},
-		{
-			name: "Invalid Image Data",
-			input: func() io.Reader {
-				return strings.NewReader("not an image")
-			},
-			wantErr: true,
-		},
-		{
-			name: "Empty Reader",
-			input: func() io.Reader {
-				return strings.NewReader("")
-			},
-			wantErr: true,
-		},
-	}
-	for _, test := range testCases {
-		t.Run(test.name, func(t *testing.T) {
-			reader := test.input()
-			if f, ok := reader.(*os.File); ok {
-				defer f.Close()
-			}
-			rgba, err := ImageFileToRGBA(reader)
-			if (err != nil) != test.wantErr {
-				t.Errorf(
-					"Test %s failed: expected = %v, got %v",
-					test.name,
-					test.wantErr,
-					err,
-				)
-				return
-			}
-			if test.wantErr {
-				return
-			}
-			if test.expected != nil {
-				result := CalculateAverageColor(rgba)
-				if result != *test.expected {
-					t.Errorf(
-						"Test %s failed: expected = %v, got %v",
-						test.name,
-						test.expected,
-						result,
-					)
-				}
-			}
-		})
-	}
-}
-
 func TestColorDifference(t *testing.T) {
 	testCases := []struct {
 		name        string
@@ -145,7 +77,7 @@ func TestColorDifference(t *testing.T) {
 		},
 	}
 	for _, test := range testCases {
-		result := ColorDistance(test.firstColor, test.secondColor)
+		result := CalculateColorDistance(test.firstColor, test.secondColor)
 		if result != test.expected {
 			t.Errorf(
 				"Test %s failed: expected = %v, got %v",

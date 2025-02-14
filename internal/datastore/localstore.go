@@ -25,16 +25,6 @@ func NewLocalStore(directory string) *LocalStore {
 	}
 }
 
-func imageToRGBA(src image.Image) *image.RGBA {
-	if dst, ok := src.(*image.RGBA); ok {
-		return dst
-	}
-	b := src.Bounds()
-	dst := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
-	draw.Draw(dst, dst.Bounds(), src, b.Min, draw.Src)
-	return dst
-}
-
 func (s *LocalStore) GetRGBA(id uuid.UUID) (*image.RGBA, error) {
 	f, err := s.GetFile(id)
 	if err != nil {

@@ -11,10 +11,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/pokemonpower92/collagegenerator/config"
 	"github.com/pokemonpower92/collagegenerator/internal/datastore"
+	"github.com/pokemonpower92/collagegenerator/internal/imageprocessing"
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	"github.com/pokemonpower92/collagegenerator/internal/service"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
-	"github.com/pokemonpower92/collagegenerator/internal/utils"
 )
 
 func Seed() {
@@ -88,7 +88,7 @@ func Seed() {
 		if err != nil {
 			panic(err)
 		}
-		average := utils.CalculateAverageColor(imageSetImage)
+		average := imageprocessing.CalculateAverageColor(imageSetImage)
 		_, err = acRepo.Create(sqlc.CreateAverageColorParams{
 			ID:         im.id,
 			ImagesetID: imSet.ID,

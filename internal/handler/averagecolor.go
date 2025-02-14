@@ -8,10 +8,10 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/pokemonpower92/collagegenerator/internal/datastore"
+	"github.com/pokemonpower92/collagegenerator/internal/imageprocessing"
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	"github.com/pokemonpower92/collagegenerator/internal/response"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
-	"github.com/pokemonpower92/collagegenerator/internal/utils"
 )
 
 type CreateAverageColorRequest struct {
@@ -68,7 +68,7 @@ func (ach *AverageColorHandler) CreateAverageColor(w http.ResponseWriter, r *htt
 	if err != nil {
 		return err
 	}
-	average := utils.CalculateAverageColor(image)
+	average := imageprocessing.CalculateAverageColor(image)
 	averageColor, err := ach.repo.Create(sqlc.CreateAverageColorParams{
 		ID:         req.AverageColorID,
 		ImagesetID: req.ImagesetID,

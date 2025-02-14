@@ -15,9 +15,9 @@ import (
 	"github.com/nfnt/resize"
 	"github.com/pokemonpower92/collagegenerator/config"
 	"github.com/pokemonpower92/collagegenerator/internal/datastore"
+	"github.com/pokemonpower92/collagegenerator/internal/imageprocessing"
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
-	"github.com/pokemonpower92/collagegenerator/internal/utils"
 )
 
 type CollageMetaData struct {
@@ -157,7 +157,7 @@ func (cs *collageMetaDataService) findImagesForSections(
 				B: uint8(averageColor.B),
 				A: uint8(averageColor.A),
 			}
-			distance := utils.ColorDistance(*imageSetAverage, *sectionAverage)
+			distance := imageprocessing.CalculateColorDistance(*imageSetAverage, *sectionAverage)
 			if distance < bestDistance {
 				bestFit = averageColor.ID
 				bestDistance = distance

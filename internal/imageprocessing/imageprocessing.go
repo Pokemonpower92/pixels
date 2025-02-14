@@ -1,26 +1,14 @@
-package utils
+package imageprocessing
 
 import (
 	"image"
 	"image/color"
-	"image/draw"
 	_ "image/jpeg"
 	_ "image/png"
-	"io"
 	"math"
 )
 
-func ImageFileToRGBA(reader io.Reader) (*image.RGBA, error) {
-	im, _, err := image.Decode(reader)
-	if err != nil {
-		return nil, err
-	}
-	b := im.Bounds()
-	dst := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
-	draw.Draw(dst, dst.Bounds(), im, b.Min, draw.Src)
-	return dst, nil
-}
-
+// Calculate the average color of the given image.RGBA
 func CalculateAverageColor(image *image.RGBA) color.RGBA {
 	r, g, b, a, totalPixels := 0, 0, 0, 0, 0
 	bounds := image.Bounds()
@@ -42,7 +30,9 @@ func CalculateAverageColor(image *image.RGBA) color.RGBA {
 	}
 }
 
-func ColorDistance(c1, c2 color.RGBA) float64 {
+// Calculate the difference between color.RGBAs c1 and c2
+// Difference is weighted by human perception.
+func CalculateColorDistance(c1, c2 color.RGBA) float64 {
 	rf1, gf1, bf1 := float64(c1.R), float64(c1.G), float64(c1.B)
 	rf2, gf2, bf2 := float64(c2.R), float64(c2.G), float64(c2.B)
 
