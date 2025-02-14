@@ -36,7 +36,6 @@ type Collage struct {
 type CollageImage struct {
 	DbID      int32       `json:"db_id"`
 	ID        uuid.UUID   `json:"id"`
-	FileName  string      `json:"file_name"`
 	CollageID uuid.UUID   `json:"collage_id"`
 	CreatedAt pgtype.Date `json:"created_at"`
 	UpdatedAt pgtype.Date `json:"updated_at"`

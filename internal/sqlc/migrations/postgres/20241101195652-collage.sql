@@ -17,7 +17,6 @@ CREATE INDEX collages_updated_at ON collages (updated_at);
 CREATE TABLE collage_images (
     db_id SERIAL PRIMARY KEY,
     id UUID UNIQUE NOT NULL,
-    file_name TEXT UNIQUE NOT NULL,
     collage_id UUID UNIQUE NOT NULL,
     created_at DATE NOT NULL,
     updated_at DATE NOT NULL,
