@@ -126,7 +126,7 @@ func Seed() {
 		ImageSetID:    imSet.ID,
 		TargetImageID: targetImage.ID,
 	})
-	service.CreateCollage(col)
+	service.CreateCollageMetaData(col)
 	if err != nil {
 		panic(err)
 	}

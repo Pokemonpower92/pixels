@@ -61,7 +61,7 @@ func (ch *CollageHandler) CreateCollage(w http.ResponseWriter, r *http.Request) 
 		return err
 	}
 	ch.l.Printf("Created Collage with id: %s", collage.ID)
-	go service.CreateCollage(collage)
+	go service.CreateCollageMetaData(collage)
 	response.WriteResponse(w, http.StatusCreated, collage)
 	return nil
 }

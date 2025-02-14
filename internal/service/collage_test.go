@@ -119,7 +119,7 @@ func TestGetAverageColors(t *testing.T) {
 		},
 	}
 	for _, test := range testCases {
-		service := newCollageService(
+		service := newCollageMetaDataService(
 			test.collage,
 			&test.repo,
 			&test.store,
@@ -178,7 +178,7 @@ func TestFindImagesForSections(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			service := &collageService{
+			service := &collageMetaDataService{
 				logger:     NewServiceLogger("test"),
 				sectionMap: make([]uuid.UUID, len(tc.sectionAverages)),
 			}
@@ -271,7 +271,7 @@ func TestCollageService(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			service := newCollageService(tc.collage, &tc.repo, &tc.store)
+			service := newCollageMetaDataService(tc.collage, &tc.repo, &tc.store)
 			service.determineImagePlacements()
 			if !tc.shouldError {
 				for i, section := range service.sectionMap {
@@ -335,7 +335,7 @@ func TestGetSectionAverageColors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			service := newCollageService(
+			service := newCollageMetaDataService(
 				tc.collage,
 				&ACRepoExtenderStub{},
 				&tc.store,
