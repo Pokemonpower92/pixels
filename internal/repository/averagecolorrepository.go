@@ -49,48 +49,48 @@ func (acr *AverageColorRepository) Close() {
 }
 
 func (acr *AverageColorRepository) Get(id uuid.UUID) (*sqlc.AverageColor, error) {
-	imageSet, err := acr.q.GetAverageColor(acr.ctx, id)
+	averageColor, err := acr.q.GetAverageColor(acr.ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return imageSet, nil
+	return averageColor, nil
 }
 
 func (acr *AverageColorRepository) GetByImageSetId(id uuid.UUID) ([]*sqlc.AverageColor, error) {
-	imageSets, err := acr.q.GetByImageSetId(acr.ctx, id)
+	averageColors, err := acr.q.GetByImageSetId(acr.ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return imageSets, nil
+	return averageColors, nil
 }
 
 func (acr *AverageColorRepository) GetAll() ([]*sqlc.AverageColor, error) {
-	imageSets, err := acr.q.ListAverageColors(acr.ctx)
+	averageColors, err := acr.q.ListAverageColors(acr.ctx)
 	if err != nil {
 		return nil, err
 	}
-	return imageSets, nil
+	return averageColors, nil
 }
 
 func (acr *AverageColorRepository) Create(
 	req sqlc.CreateAverageColorParams,
 ) (*sqlc.AverageColor, error) {
-	imageset, err := acr.q.CreateAverageColor(acr.ctx, req)
+	averageColor, err := acr.q.CreateAverageColor(acr.ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	return imageset, nil
+	return averageColor, nil
 }
 
 func (acr *AverageColorRepository) Update(
 	id uuid.UUID,
 	req sqlc.CreateAverageColorParams,
 ) (*sqlc.AverageColor, error) {
-	acr.logger.Printf("Update not implemented for average color")
+	acr.logger.Printf("Update not implemented for AverageColor")
 	return nil, errors.New("Not implemented")
 }
 
 func (acr *AverageColorRepository) Delete(id uuid.UUID) error {
-	acr.logger.Printf("Delete not implemented for average color")
+	acr.logger.Printf("Delete not implemented for AverageColor")
 	return errors.New("Not implemented")
 }

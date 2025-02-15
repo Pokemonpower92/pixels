@@ -15,18 +15,13 @@ const createCollageImage = `-- name: CreateCollageImage :one
 INSERT INTO collage_images (
   id, collage_id, created_at, updated_at
 ) VALUES (
-  $1, $2, NOW(), NOW() 
+  uuid_generate_v4(), $1, NOW(), NOW() 
 )
 RETURNING db_id, id, collage_id, created_at, updated_at
 `
 
-type CreateCollageImageParams struct {
-	ID        uuid.UUID `json:"id"`
-	CollageID uuid.UUID `json:"collage_id"`
-}
-
-func (q *Queries) CreateCollageImage(ctx context.Context, arg CreateCollageImageParams) (*CollageImage, error) {
-	row := q.db.QueryRow(ctx, createCollageImage, arg.ID, arg.CollageID)
+func (q *Queries) CreateCollageImage(ctx context.Context, collageID uuid.UUID) (*CollageImage, error) {
+	row := q.db.QueryRow(ctx, createCollageImage, collageID)
 	var i CollageImage
 	err := row.Scan(
 		&i.DbID,

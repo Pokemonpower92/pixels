@@ -14,7 +14,7 @@ ORDER BY updated_at;
 INSERT INTO collage_images (
   id, collage_id, created_at, updated_at
 ) VALUES (
-  $1, $2, NOW(), NOW() 
+  uuid_generate_v4(), $1, NOW(), NOW() 
 )
 RETURNING *;
 

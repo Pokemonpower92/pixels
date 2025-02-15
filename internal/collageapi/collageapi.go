@@ -57,6 +57,16 @@ func Start() {
 	r.RegisterRoute("GET /collages", collageHandler.GetCollages)
 	r.RegisterRoute("GET /collages/{id}", collageHandler.GetCollageById)
 
+	ciRepo, err := repository.NewCollageImgageRepository(c, ctx)
+	if err != nil {
+		panic(err)
+	}
+	defer ciRepo.Close()
+	collageImageHandler := handler.NewCollageImageHandler(ciRepo)
+	r.RegisterRoute("POST /collageimages", collageImageHandler.CreateCollageImage)
+	r.RegisterRoute("GET /collageimages", collageImageHandler.GetCollageImages)
+	r.RegisterRoute("GET /collageimages/{id}", collageImageHandler.GetCollageImageById)
+
 	fileHandler := handler.NewFileHandler()
 	r.RegisterRoute("POST /files", fileHandler.StoreFile)
 	r.RegisterRoute("GET /files/{id}", fileHandler.GetFileById)

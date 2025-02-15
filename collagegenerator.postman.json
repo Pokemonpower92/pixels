@@ -7,7 +7,7 @@
 	},
 	"item": [
 		{
-			"name": "image_sets",
+			"name": "imagesets",
 			"item": [
 				{
 					"name": "List",
@@ -86,7 +86,7 @@
 						"body": {
 							"mode": "file",
 							"file": {
-								"src": "/Users/pooch/Documents/Personal/Wallpapers/Fantasy/dalinar.jpeg"
+								"src": "/Users/pooch/Documents/Personal/Wallpapers/5265_SeriesHeaders_OP_2000x800_wm.jpg"
 							}
 						},
 						"url": {
@@ -124,7 +124,7 @@
 			]
 		},
 		{
-			"name": "target_image",
+			"name": "targetimages",
 			"item": [
 				{
 					"name": "List",
@@ -199,7 +199,7 @@
 			]
 		},
 		{
-			"name": "average_color",
+			"name": "averagecolors",
 			"item": [
 				{
 					"name": "List",
@@ -275,7 +275,7 @@
 			]
 		},
 		{
-			"name": "colllage",
+			"name": "colllages",
 			"item": [
 				{
 					"name": "List",
@@ -336,6 +336,75 @@
 							"port": "8000",
 							"path": [
 								"collages"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "collageimages",
+			"item": [
+				{
+					"name": "List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8000/collageimages",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"collageimages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8000/collageimages/{{COLLAGE-ID}}",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"collageimages",
+								"{{COLLAGE-ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"collage_id\": \"{{COLLAGE-ID}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8000/collageimages",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"collageimages"
 							]
 						}
 					},
