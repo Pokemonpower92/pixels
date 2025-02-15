@@ -90,7 +90,7 @@ func (cs *collageMetaDataService) getAverageColors() ([]*sqlc.AverageColor, erro
 
 // Get the local average color value of the collage's
 // target image by scaling it down to X_SECTIONSxY_SECTIONS
-func (cs *collageMetaDataService) getSectionAverageColors() ([]*color.RGBA, error) {
+func (cs *collageMetaDataService) getSectionAverageColors() ([]color.Color, error) {
 	targetImageReader, err := cs.store.GetFile(cs.collage.TargetImageID)
 	if err != nil {
 		cs.logger.Printf(
@@ -114,18 +114,10 @@ func (cs *collageMetaDataService) getSectionAverageColors() ([]*color.RGBA, erro
 		resize.Lanczos2,
 	)
 	bounds := scaledImage.Bounds()
-	averageColors := make([]*color.RGBA, bounds.Dx()*bounds.Dy())
+	averageColors := make([]color.Color, bounds.Dx()*bounds.Dy())
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			c := scaledImage.At(x, y)
-			r, g, b, a := c.RGBA()
-			color := &color.RGBA{
-				R: uint8(r >> 8),
-				G: uint8(g >> 8),
-				B: uint8(b >> 8),
-				A: uint8(a >> 8),
-			}
-			averageColors[y*bounds.Dx()+x] = color
+			averageColors[y*bounds.Dx()+x] = scaledImage.At(x, y)
 		}
 	}
 	return averageColors, nil
@@ -138,7 +130,7 @@ func (cs *collageMetaDataService) getSectionAverageColors() ([]*color.RGBA, erro
 func (cs *collageMetaDataService) findImagesForSections(
 	startSection int,
 	numSections int,
-	sectionAverages *[]*color.RGBA,
+	sectionAverages *[]color.Color,
 	imageSetAverageColors *[]*sqlc.AverageColor,
 ) {
 	cs.logger.Printf(
@@ -151,13 +143,18 @@ func (cs *collageMetaDataService) findImagesForSections(
 		bestDistance := math.MaxFloat64
 		sectionAverage := (*sectionAverages)[section]
 		for _, averageColor := range *imageSetAverageColors {
-			imageSetAverage := &color.RGBA{
-				R: uint8(averageColor.R),
-				G: uint8(averageColor.G),
-				B: uint8(averageColor.B),
-				A: uint8(averageColor.A),
+			// Scale up 8-bit to 16-bit
+			dbColor := imageprocessing.RGB16{
+				R: uint16(averageColor.R) * 257, // Scale up to full 16-bit range
+				G: uint16(averageColor.G) * 257,
+				B: uint16(averageColor.B) * 257,
 			}
-			distance := imageprocessing.CalculateColorDistance(*imageSetAverage, *sectionAverage)
+
+			distance := imageprocessing.CalculateColorDistance(
+				dbColor,
+				sectionAverage,
+			)
+
 			if distance < bestDistance {
 				bestFit = averageColor.ID
 				bestDistance = distance

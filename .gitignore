@@ -27,3 +27,5 @@ resources/*
 /bin/
 # /pkg/
 # /out/
+
+.DS_Store

@@ -38,29 +38,121 @@ func Seed() {
 		id    uuid.UUID
 		color color.RGBA
 	}{
+		// Three shades of red
 		{
 			id:    uuid.New(),
-			color: color.RGBA{R: 255, G: 0, B: 0, A: 255},
+			color: color.RGBA{R: 255, G: 0, B: 0, A: 255}, // Bright red
 		},
 		{
 			id:    uuid.New(),
-			color: color.RGBA{R: 0, G: 255, B: 0, A: 255},
+			color: color.RGBA{R: 192, G: 0, B: 0, A: 255}, // Medium red
 		},
 		{
 			id:    uuid.New(),
-			color: color.RGBA{R: 0, G: 0, B: 255, A: 255},
+			color: color.RGBA{R: 128, G: 0, B: 0, A: 255}, // Dark red
+		},
+		// Three shades of green
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 0, G: 255, B: 0, A: 255}, // Bright green
 		},
 		{
 			id:    uuid.New(),
-			color: color.RGBA{R: 0, G: 0, B: 0, A: 255},
+			color: color.RGBA{R: 0, G: 192, B: 0, A: 255}, // Medium green
 		},
 		{
 			id:    uuid.New(),
-			color: color.RGBA{R: 255, G: 255, B: 255, A: 255},
+			color: color.RGBA{R: 0, G: 128, B: 0, A: 255}, // Dark green
+		},
+		// Three shades of blue
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 0, G: 0, B: 255, A: 255}, // Bright blue
 		},
 		{
 			id:    uuid.New(),
-			color: color.RGBA{R: 200, G: 200, B: 200, A: 255},
+			color: color.RGBA{R: 0, G: 0, B: 192, A: 255}, // Medium blue
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 0, G: 0, B: 128, A: 255}, // Dark blue
+		},
+		// Three grayscale values
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 255, G: 255, B: 255, A: 255}, // White
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 128, G: 128, B: 128, A: 255}, // Medium gray
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 0, G: 0, B: 0, A: 255}, // Black
+		},
+		// Flesh tones
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 255, G: 224, B: 196, A: 255}, // Light flesh tone
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 238, G: 207, B: 180, A: 255}, // Medium light flesh tone
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 224, G: 172, B: 105, A: 255}, // Medium flesh tone
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 141, G: 85, B: 36, A: 255}, // Dark flesh tone
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 198, G: 134, B: 66, A: 255}, // Medium dark flesh tone
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 89, G: 47, B: 42, A: 255}, // Deep flesh tone
+		},
+		// Purples
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 147, G: 112, B: 219, A: 255}, // Medium purple
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 75, G: 0, B: 130, A: 255}, // Indigo
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 186, G: 85, B: 211, A: 255}, // Medium orchid
+		},
+		// Yellows
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 255, G: 255, B: 0, A: 255}, // Bright yellow
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 255, G: 215, B: 0, A: 255}, // Gold
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 218, G: 165, B: 32, A: 255}, // Goldenrod
+		},
+		// Pinks
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 255, G: 192, B: 203, A: 255}, // Pink
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 255, G: 20, B: 147, A: 255}, // Deep pink
+		},
+		{
+			id:    uuid.New(),
+			color: color.RGBA{R: 219, G: 112, B: 147, A: 255}, // Pale violet red
 		},
 	}
 	img := image.NewRGBA(image.Rect(0, 0, 50, 50))
