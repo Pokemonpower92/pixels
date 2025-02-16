@@ -33,12 +33,12 @@ func NewAverageColorHandler(repo repository.ACRepo) *AverageColorHandler {
 
 func (ach *AverageColorHandler) GetAverageColors(w http.ResponseWriter, _ *http.Request) error {
 	ach.l.Printf("Getting AverageColors")
-	imageSets, err := ach.repo.GetAll()
+	averageColors, err := ach.repo.GetAll()
 	if err != nil {
 		return err
 	}
-	ach.l.Printf("Found %d AverageColors", len(imageSets))
-	response.WriteResponse(w, http.StatusOK, imageSets)
+	ach.l.Printf("Found %d AverageColors", len(averageColors))
+	response.WriteResponse(w, http.StatusOK, averageColors)
 	return nil
 }
 
@@ -54,6 +54,21 @@ func (ach *AverageColorHandler) GetAverageColorById(w http.ResponseWriter, r *ht
 	}
 	ach.l.Printf("Found AverageColor: %v", averageColor)
 	response.WriteResponse(w, http.StatusOK, averageColor)
+	return nil
+}
+
+func (ach *AverageColorHandler) GetByImageSetId(w http.ResponseWriter, r *http.Request) error {
+	ach.l.Printf("Getting AverageColor by ImageSet ID")
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		return err
+	}
+	averageColors, err := ach.repo.GetByResourceId(id)
+	if err != nil {
+		return err
+	}
+	ach.l.Printf("Found %d AverageColors", len(averageColors))
+	response.WriteResponse(w, http.StatusOK, averageColors)
 	return nil
 }
 

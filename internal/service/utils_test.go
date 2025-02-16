@@ -16,17 +16,9 @@ import (
 	"github.com/pokemonpower92/collagegenerator/internal/stubs"
 )
 
-type ACRepoExtenderStub struct {
-	GetByImageSetFunc func(id uuid.UUID) ([]*sqlc.AverageColor, error)
-}
-
-func (acr *ACRepoExtenderStub) GetByImageSetId(id uuid.UUID) ([]*sqlc.AverageColor, error) {
-	return acr.GetByImageSetFunc(id)
-}
-
-func successRepo() ACRepoExtenderStub {
-	return ACRepoExtenderStub{
-		GetByImageSetFunc: func(id uuid.UUID) ([]*sqlc.AverageColor, error) {
+func successACRepo() stubs.ACRepoStub {
+	return stubs.ACRepoStub{
+		GetByResourceIdFunc: func(id uuid.UUID) ([]*sqlc.AverageColor, error) {
 			return []*sqlc.AverageColor{
 				{
 					DbID:     1,
@@ -42,9 +34,9 @@ func successRepo() ACRepoExtenderStub {
 	}
 }
 
-func errorRepo() ACRepoExtenderStub {
-	return ACRepoExtenderStub{
-		GetByImageSetFunc: func(id uuid.UUID) ([]*sqlc.AverageColor, error) {
+func errorACRepo() stubs.ACRepoStub {
+	return stubs.ACRepoStub{
+		GetByResourceIdFunc: func(id uuid.UUID) ([]*sqlc.AverageColor, error) {
 			return nil, errors.New("Stub error.")
 		},
 	}

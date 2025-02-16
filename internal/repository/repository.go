@@ -17,6 +17,11 @@ type Repository[O, R any] interface {
 	Delete(id uuid.UUID) error
 }
 
+type ResourceRepository[O, R any] interface {
+	Repository[O, R]
+	GetByResourceId(resourceId uuid.UUID) ([]*O, error)
+}
+
 func GetConnectionString(config *config.DBConfig) string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
 		config.User,
@@ -30,7 +35,7 @@ func GetConnectionString(config *config.DBConfig) string {
 type (
 	ISRepo Repository[sqlc.ImageSet, sqlc.CreateImageSetParams]
 	TIRepo Repository[sqlc.TargetImage, sqlc.CreateTargetImageParams]
-	ACRepo Repository[sqlc.AverageColor, sqlc.CreateAverageColorParams]
+	ACRepo ResourceRepository[sqlc.AverageColor, sqlc.CreateAverageColorParams]
 	CRepo  Repository[sqlc.Collage, sqlc.CreateCollageParams]
 	CIRepo Repository[sqlc.CollageImage, uuid.UUID]
 )

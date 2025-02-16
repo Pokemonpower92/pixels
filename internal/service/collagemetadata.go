@@ -25,10 +25,6 @@ type CollageMetaData struct {
 	SectionMap []uuid.UUID             `json:"section_map"`
 }
 
-type ACRepoExtender interface {
-	GetByImageSetId(id uuid.UUID) ([]*sqlc.AverageColor, error)
-}
-
 func CreateCollageMetaData(collage *sqlc.Collage) {
 	serviceContext, cancel := context.WithTimeout(
 		context.Background(),
@@ -52,7 +48,7 @@ type collageMetaDataService struct {
 	logger     *ServiceLogger
 	numThreads int
 	collage    *sqlc.Collage
-	acRepo     ACRepoExtender
+	acRepo     repository.ACRepo
 	resolution *config.ResolutionConfig
 	sectionMap []uuid.UUID
 	store      datastore.Store
@@ -60,7 +56,7 @@ type collageMetaDataService struct {
 
 func newCollageMetaDataService(
 	collage *sqlc.Collage,
-	acRepo ACRepoExtender,
+	acRepo repository.ACRepo,
 	store datastore.Store,
 ) *collageMetaDataService {
 	logger := NewServiceLogger("CollageMetaData")
@@ -81,7 +77,7 @@ func newCollageMetaDataService(
 }
 
 func (cs *collageMetaDataService) getAverageColors() ([]*sqlc.AverageColor, error) {
-	averageColors, err := cs.acRepo.GetByImageSetId(cs.collage.ImageSetID)
+	averageColors, err := cs.acRepo.GetByResourceId(cs.collage.ImageSetID)
 	if err != nil {
 		return nil, errors.New("Failed to get average colors")
 	}

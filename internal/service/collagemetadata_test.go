@@ -16,7 +16,7 @@ import (
 func TestGetAverageColors(t *testing.T) {
 	testCases := []struct {
 		name        string
-		repo        ACRepoExtenderStub
+		repo        stubs.ACRepoStub
 		store       stubs.StoreStub
 		collage     *sqlc.Collage
 		expected    *[]*sqlc.AverageColor
@@ -24,7 +24,7 @@ func TestGetAverageColors(t *testing.T) {
 	}{
 		{
 			name:    "Success",
-			repo:    successRepo(),
+			repo:    successACRepo(),
 			store:   successStore(),
 			collage: &sqlc.Collage{},
 			expected: &[]*sqlc.AverageColor{
@@ -42,7 +42,7 @@ func TestGetAverageColors(t *testing.T) {
 		},
 		{
 			name:        "Success",
-			repo:        errorRepo(),
+			repo:        errorACRepo(),
 			store:       successStore(),
 			collage:     &sqlc.Collage{},
 			expected:    nil,
@@ -130,14 +130,14 @@ func TestFindImagesForSections(t *testing.T) {
 func TestCollageService(t *testing.T) {
 	testCases := []struct {
 		name        string
-		repo        ACRepoExtenderStub
+		repo        stubs.ACRepoStub
 		store       stubs.StoreStub
 		collage     *sqlc.Collage
 		shouldError bool
 	}{
 		{
 			name:  "Success",
-			repo:  successRepo(),
+			repo:  successACRepo(),
 			store: successStore(),
 			collage: &sqlc.Collage{
 				ID:            uuid.New(),
@@ -148,7 +148,7 @@ func TestCollageService(t *testing.T) {
 		},
 		{
 			name: "Error - GetFile fails",
-			repo: successRepo(),
+			repo: successACRepo(),
 			store: stubs.StoreStub{
 				GetRGBAFunc: func(id uuid.UUID) (*image.RGBA, error) {
 					return nil, errors.New("RGBA error")
@@ -169,7 +169,7 @@ func TestCollageService(t *testing.T) {
 		},
 		{
 			name:  "Error - GetByImageSetId fails",
-			repo:  errorRepo(),
+			repo:  errorACRepo(),
 			store: successStore(),
 			collage: &sqlc.Collage{
 				ID:            uuid.New(),
@@ -180,7 +180,7 @@ func TestCollageService(t *testing.T) {
 		},
 		{
 			name: "Error - PutFile fails",
-			repo: successRepo(),
+			repo: successACRepo(),
 			store: stubs.StoreStub{
 				GetRGBAFunc: func(id uuid.UUID) (*image.RGBA, error) {
 					return &image.RGBA{}, nil
@@ -268,7 +268,7 @@ func TestGetSectionAverageColors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			service := newCollageMetaDataService(
 				tc.collage,
-				&ACRepoExtenderStub{},
+				&stubs.ACRepoStub{},
 				&tc.store,
 			)
 			colors, _ := service.getSectionAverageColors()

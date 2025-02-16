@@ -46,6 +46,7 @@ func Start() {
 	r.RegisterRoute("POST /averagecolors", averageColorHandler.CreateAverageColor)
 	r.RegisterRoute("GET /averagecolors", averageColorHandler.GetAverageColors)
 	r.RegisterRoute("GET /averagecolors/{id}", averageColorHandler.GetAverageColorById)
+	r.RegisterRoute("GET /imagesetimages/{id}", averageColorHandler.GetByImageSetId)
 
 	cRepo, err := repository.NewCollageRepository(c, ctx)
 	if err != nil {

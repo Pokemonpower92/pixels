@@ -239,6 +239,25 @@
 					"response": []
 				},
 				{
+					"name": "Get By ImageSet Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8000/imagesetimages/{{IMAGE-SET-ID}}",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"imagesetimages",
+								"{{IMAGE-SET-ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Create",
 					"request": {
 						"method": "POST",
