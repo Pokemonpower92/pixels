@@ -43,7 +43,7 @@ test:
 clean:
 	$(GO_CLEAN) && \
 	rm ./bin/* && \
-	rm ./resources/*
+	find ./resources -type f ! -name '.keep' -delete 
 
 
 build: collageapi
