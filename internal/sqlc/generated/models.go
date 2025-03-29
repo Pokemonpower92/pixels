@@ -58,3 +58,12 @@ type TargetImage struct {
 	CreatedAt   pgtype.Date `json:"created_at"`
 	UpdatedAt   pgtype.Date `json:"updated_at"`
 }
+
+type User struct {
+	DbID        int32       `json:"db_id"`
+	ID          uuid.UUID   `json:"id"`
+	UserName    string      `json:"user_name"`
+	Permissions []byte      `json:"permissions"`
+	CreatedAt   pgtype.Date `json:"created_at"`
+	UpdatedAt   pgtype.Date `json:"updated_at"`
+}
