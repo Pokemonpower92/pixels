@@ -31,3 +31,15 @@ func NewCollageServer(router *router.Router) *Server {
 		router: router,
 	}
 }
+
+func NewAuthServer(router *router.Router) *Server {
+	server := &http.Server{
+		Addr:    "localhost:8001",
+		Handler: router.Mux,
+	}
+
+	return &Server{
+		server: server,
+		router: router,
+	}
+}

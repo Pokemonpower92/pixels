@@ -10,8 +10,14 @@ LOCALSTACK_CMD=sh ./scripts/localstack.sh
 start_collageapi:
 	./bin/collageapi
 
+start_authapi:
+	./bin/authapi
+
 run_collageapi:
 	$(GO_CMD) run ./cmd/collageapi/main.go
+
+run_authapi:
+	$(GO_CMD) run ./cmd/authapi/main.go
 
 run_migration: vet
 	$(GO_CMD) run ./cmd/migrate/main.go
@@ -31,6 +37,9 @@ stack_start:
 collageapi: vet
 	$(GO_BUILD) -C cmd/collageapi -o ../../bin/collageapi
 
+authapi: vet
+	$(GO_BUILD) -C cmd/authapi -o ../../bin/authapi
+
 vet: fmt
 	$(GO_VET) ./...
 
@@ -47,7 +56,7 @@ clean:
 
 
 build: collageapi
-start: vet build stack_deploy run_migration run_seed start_collageapi 
+start: vet build stack_deploy run_migration run_seed start_authapi start_collageapi 
 all: vet build
 
 .PHONY: build fmt vet clean all
