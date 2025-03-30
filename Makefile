@@ -55,7 +55,7 @@ clean:
 	find ./resources -type f ! -name '.keep' -delete 
 
 
-build: collageapi
+build: collageapi authapi
 start: vet build stack_deploy run_migration run_seed start_authapi start_collageapi 
 all: vet build
 

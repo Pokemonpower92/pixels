@@ -33,19 +33,19 @@ func (r *RepositoryStub[O, R]) Delete(id uuid.UUID) error {
 	return r.DeleteFunc(id)
 }
 
-type ResourceRepositoryStub[O, R any] struct {
+type ResourceRepositoryStub[O, R, Q any] struct {
 	RepositoryStub[O, R]
-	GetByResourceIdFunc func(resourceId uuid.UUID) ([]*O, error)
+	GetByResourceIdFunc func(resourceId Q) ([]*O, error)
 }
 
-func (r *ResourceRepositoryStub[O, R]) GetByResourceId(resourceId uuid.UUID) ([]*O, error) {
+func (r *ResourceRepositoryStub[O, R, Q]) GetByResourceId(resourceId Q) ([]*O, error) {
 	return r.GetByResourceIdFunc(resourceId)
 }
 
 type (
 	ISRepoStub RepositoryStub[sqlc.ImageSet, sqlc.CreateImageSetParams]
 	TIRepoStub RepositoryStub[sqlc.TargetImage, sqlc.CreateTargetImageParams]
-	ACRepoStub = ResourceRepositoryStub[sqlc.AverageColor, sqlc.CreateAverageColorParams]
+	ACRepoStub = ResourceRepositoryStub[sqlc.AverageColor, sqlc.CreateAverageColorParams, uuid.UUID]
 	CRepoStub  RepositoryStub[sqlc.Collage, sqlc.CreateCollageParams]
-	CIRepoStub ResourceRepositoryStub[sqlc.CollageImage, uuid.UUID]
+	CIRepoStub ResourceRepositoryStub[sqlc.CollageImage, uuid.UUID, uuid.UUID]
 )
