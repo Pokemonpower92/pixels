@@ -2,6 +2,7 @@ package service
 
 import (
 	"io"
+	"log/slog"
 	"reflect"
 	"testing"
 
@@ -14,13 +15,13 @@ func TestGenerate(t *testing.T) {
 	testCases := []struct {
 		name           string
 		collageImageId uuid.UUID
-		logger         *ServiceLogger
+		logger         *slog.Logger
 		store          stubs.StoreStub
 	}{
 		{
 			name:           "Success",
 			collageImageId: uuid.New(),
-			logger:         NewServiceLogger("TestCollageGenerator"),
+			logger:         slog.Default(),
 			store:          successStore(),
 		},
 	}
@@ -38,7 +39,7 @@ func TestGetMetaDataFile(t *testing.T) {
 	testCases := []struct {
 		name           string
 		collageImageId uuid.UUID
-		logger         *ServiceLogger
+		logger         *slog.Logger
 		store          stubs.StoreStub
 		expected       *CollageMetaData
 		shouldErr      bool
@@ -46,7 +47,7 @@ func TestGetMetaDataFile(t *testing.T) {
 		{
 			name:           "Success",
 			collageImageId: uuid.New(),
-			logger:         NewServiceLogger("TestCollageGenerator"),
+			logger:         slog.Default(),
 			store: stubs.StoreStub{
 				GetFileFunc: func(id uuid.UUID) (io.Reader, error) {
 					return metaDataReader(), nil

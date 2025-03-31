@@ -1,24 +1,21 @@
 package middleware
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/pokemonpower92/collagegenerator/internal/logger"
 )
 
-func Logger(logger *log.Logger) Middleware {
+func Logger() Middleware {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			startTime := time.Now()
-			logger.Printf("[%s] [%s]\n", r.Method, r.URL)
 			h.ServeHTTP(w, r)
 			elapsedTime := time.Since(startTime)
-			logger.Printf(
-				"[%s] [%s] [%s]\n",
-				r.Method,
-				r.URL,
-				elapsedTime,
-			)
+			logger, _ := logger.GetRequestLogger(r)
+			logger.Info(fmt.Sprintf("request complete in %s", elapsedTime))
 		},
 		)
 	}

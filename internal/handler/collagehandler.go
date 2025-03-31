@@ -2,7 +2,8 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -14,54 +15,55 @@ import (
 )
 
 type CollageHandler struct {
-	l    *log.Logger
 	repo repository.CRepo
 }
 
 func NewCollageHandler(repo repository.CRepo) *CollageHandler {
-	l := log.New(log.Writer(), "", log.LstdFlags)
-	return &CollageHandler{l: l, repo: repo}
+	return &CollageHandler{repo: repo}
 }
 
-func (ch *CollageHandler) GetCollages(w http.ResponseWriter, _ *http.Request) error {
-	ch.l.Printf("Getting Collages")
-	imageSets, err := ch.repo.GetAll()
+func (ch *CollageHandler) GetCollages(w http.ResponseWriter, _ *http.Request, l *slog.Logger) error {
+	l.Info("Getting Collages")
+	collages, err := ch.repo.GetAll()
 	if err != nil {
 		return err
 	}
-	ch.l.Printf("Found %d Collages", len(imageSets))
-	response.WriteResponse(w, http.StatusOK, imageSets)
+	l.Info(fmt.Sprintf("Found %d Collages", len(collages)))
+	response.WriteResponse(w, http.StatusOK, collages)
 	return nil
 }
 
-func (ch *CollageHandler) GetCollageById(w http.ResponseWriter, r *http.Request) error {
-	ch.l.Printf("Getting Collage by ID")
+func (ch *CollageHandler) GetCollageById(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+	l.Info("Getting Collage by ID")
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
+		l.Error("Error parsing id from path")
 		return err
 	}
-	averageColor, err := ch.repo.Get(id)
+	collage, err := ch.repo.Get(id)
 	if err != nil {
 		return err
 	}
-	ch.l.Printf("Found Collage: %v", averageColor)
-	response.WriteResponse(w, http.StatusOK, averageColor)
+	l.Info(fmt.Sprintf("Found Collage: %v", collage))
+	response.WriteResponse(w, http.StatusOK, collage)
 	return nil
 }
 
-func (ch *CollageHandler) CreateCollage(w http.ResponseWriter, r *http.Request) error {
-	ch.l.Printf("Creating Collage")
+func (ch *CollageHandler) CreateCollage(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+	l.Info("Creating Collage")
 	var req sqlc.CreateCollageParams
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
+		l.Error(fmt.Sprintf("Error parsing request: %s", err))
 		return err
 	}
 	collage, err := ch.repo.Create(req)
 	if err != nil {
+		l.Error(fmt.Sprintf("Error creating collage: %s", err))
 		return err
 	}
-	ch.l.Printf("Created Collage with id: %s", collage.ID)
-	go service.CreateCollageMetaData(collage)
+	l.Info(fmt.Sprintf("Created Collage with id: %s", collage.ID))
+	go service.CreateCollageMetaData(collage, l)
 	response.WriteResponse(w, http.StatusCreated, collage)
 	return nil
 }

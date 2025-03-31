@@ -1,8 +1,9 @@
 package handler
 
 import (
+	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -10,28 +11,18 @@ import (
 	"github.com/pokemonpower92/collagegenerator/internal/response"
 )
 
-type FileHandler struct {
-	l     *log.Logger
-	store datastore.Store
-}
-
-func NewFileHandler() *FileHandler {
-	l := log.New(log.Writer(), "", log.LstdFlags)
-	store := datastore.NewStore()
-	return &FileHandler{l: l, store: store}
-}
-
-func (ish *FileHandler) GetFiles(w http.ResponseWriter, _ *http.Request) error {
+func GetFiles(w http.ResponseWriter, _ *http.Request) error {
 	return nil
 }
 
-func (ish *FileHandler) GetFileById(w http.ResponseWriter, r *http.Request) error {
-	ish.l.Printf("Getting File by ID")
+func GetFileById(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+	l.Info("Getting File by ID")
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		return err
 	}
-	image, err := ish.store.GetFile(id)
+	store := datastore.NewStore(l)
+	image, err := store.GetFile(id)
 	if err != nil {
 		return err
 	}
@@ -39,17 +30,18 @@ func (ish *FileHandler) GetFileById(w http.ResponseWriter, r *http.Request) erro
 	if err != nil {
 		return err
 	}
-	ish.l.Printf("Got File: %s", id)
+	l.Info(fmt.Sprintf("Got File: %s", id))
 	return nil
 }
 
-func (ish *FileHandler) StoreFile(w http.ResponseWriter, r *http.Request) error {
-	ish.l.Printf("Storing File")
+func StoreFile(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+	l.Info("Storing File")
 	id := uuid.New()
-	if err := ish.store.PutFile(id, r.Body); err != nil {
+	store := datastore.NewStore(l)
+	if err := store.PutFile(id, r.Body); err != nil {
 		return err
 	}
-	ish.l.Printf("Stored File")
+	l.Info("Stored File")
 	response.WriteResponse(w, http.StatusCreated, id)
 	return nil
 }

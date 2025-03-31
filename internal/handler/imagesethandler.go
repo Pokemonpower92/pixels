@@ -2,7 +2,8 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -13,28 +14,26 @@ import (
 )
 
 type ImageSetHandler struct {
-	l    *log.Logger
 	repo repository.ISRepo
 }
 
 func NewImageSetHandler(repo repository.ISRepo) *ImageSetHandler {
-	l := log.New(log.Writer(), "", log.LstdFlags)
-	return &ImageSetHandler{l: l, repo: repo}
+	return &ImageSetHandler{repo: repo}
 }
 
-func (ish *ImageSetHandler) GetImageSets(w http.ResponseWriter, _ *http.Request) error {
-	ish.l.Printf("Getting ImageSets")
+func (ish *ImageSetHandler) GetImageSets(w http.ResponseWriter, _ *http.Request, l *slog.Logger) error {
+	l.Info("Getting ImageSets")
 	imageSets, err := ish.repo.GetAll()
 	if err != nil {
 		return err
 	}
-	ish.l.Printf("Found %d ImageSets", len(imageSets))
+	l.Info(fmt.Sprintf("Found %d ImageSets", len(imageSets)))
 	response.WriteResponse(w, http.StatusOK, imageSets)
 	return nil
 }
 
-func (ish *ImageSetHandler) GetImageSetById(w http.ResponseWriter, r *http.Request) error {
-	ish.l.Printf("Getting ImageSet by ID")
+func (ish *ImageSetHandler) GetImageSetById(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+	l.Info("Getting ImageSet by ID")
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		return err
@@ -43,13 +42,13 @@ func (ish *ImageSetHandler) GetImageSetById(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		return err
 	}
-	ish.l.Printf("Found ImageSet: %v", imageSet)
+	l.Info(fmt.Sprintf("Found ImageSet: %v", imageSet))
 	response.WriteResponse(w, http.StatusOK, imageSet)
 	return nil
 }
 
-func (ish *ImageSetHandler) CreateImageSet(w http.ResponseWriter, r *http.Request) error {
-	ish.l.Printf("Creating ImageSet")
+func (ish *ImageSetHandler) CreateImageSet(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+	l.Info("Creating ImageSet")
 	var req sqlc.CreateImageSetParams
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -59,7 +58,7 @@ func (ish *ImageSetHandler) CreateImageSet(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return err
 	}
-	ish.l.Printf("Created ImageSet with id: %s", imageSet.ID)
+	l.Info(fmt.Sprintf("Created ImageSet with id: %s", imageSet.ID))
 	response.WriteResponse(w, http.StatusCreated, imageSet)
 	return nil
 }

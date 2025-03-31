@@ -56,7 +56,7 @@ clean:
 
 
 build: collageapi authapi
-start: vet build stack_deploy run_migration run_seed start_authapi start_collageapi 
+run: vet build stack_deploy run_migration run_seed
 all: vet build
 
 .PHONY: build fmt vet clean all

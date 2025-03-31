@@ -4,6 +4,7 @@ import (
 	"image"
 	_ "image/jpeg"
 	"io"
+	"log/slog"
 	"os"
 
 	"github.com/google/uuid"
@@ -19,10 +20,10 @@ type Store interface {
 
 type StoreFunc = func() Store
 
-func NewStore() Store {
+func NewStore(l *slog.Logger) Store {
 	configMap := make(map[string]StoreFunc)
 	configMap["LOCAL"] = func() Store {
-		return NewLocalStore(os.Getenv("STORE_ROOT"))
+		return NewLocalStore(os.Getenv("STORE_ROOT"), l)
 	}
 	return configMap[os.Getenv("STORE_HOST")]()
 }

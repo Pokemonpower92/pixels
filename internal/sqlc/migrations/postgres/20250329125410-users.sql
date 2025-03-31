@@ -14,4 +14,4 @@ CREATE INDEX users_created_at ON users (created_at);
 CREATE INDEX users_updated_at ON users (updated_at);
 
 -- +migrate Down
-DROP TABLE users
+DROP TABLE users;

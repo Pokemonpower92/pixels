@@ -2,7 +2,8 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/pokemonpower92/collagegenerator/internal/auth"
@@ -22,39 +23,30 @@ type AuthorizationResponse struct {
 	Ok bool `json:"ok"`
 }
 
-type AuthHandler struct {
-	l *log.Logger
-}
-
-func NewAuthHandler() *AuthHandler {
-	l := log.New(log.Writer(), "", log.LstdFlags)
-	return &AuthHandler{l}
-}
-
-func (ah *AuthHandler) Authenticate(w http.ResponseWriter, r *http.Request) error {
-	ah.l.Printf("Authenticating user")
+func Authenticate(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+	l.Info("Authenticating user")
 	var req AuthRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		ah.l.Printf("Error parsing request: %s", err)
+		l.Error(fmt.Sprintf("Error parsing request: %s", err))
 		return err
 	}
 	auth := auth.Authenticate(req.UserName)
-	ah.l.Printf("Authenticated user: %s", req.UserName)
+	l.Info(fmt.Sprintf("Authenticated user: %s", req.UserName))
 	response.WriteResponse(w, http.StatusOK, auth)
 	return nil
 }
 
-func (ah *AuthHandler) Authorize(w http.ResponseWriter, r *http.Request) error {
-	ah.l.Printf("Authorizing user")
+func Authorize(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+	l.Info("Authorizing user")
 	var req AuthRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		ah.l.Printf("Error parsing request: %s", err)
+		l.Error(fmt.Sprintf("Error parsing request: %s", err))
 		return err
 	}
 	auth := auth.Authorize(req.UserName)
-	ah.l.Printf("Authorizing user: %s", req.UserName)
+	l.Info(fmt.Sprintf("Authorized user: %s", req.UserName))
 	response.WriteResponse(w, http.StatusOK, auth)
 	return nil
 }

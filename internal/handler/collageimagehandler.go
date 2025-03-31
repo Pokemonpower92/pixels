@@ -2,12 +2,12 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/google/uuid"
 
-	"github.com/pokemonpower92/collagegenerator/internal/datastore"
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	"github.com/pokemonpower92/collagegenerator/internal/response"
 	"github.com/pokemonpower92/collagegenerator/internal/service"
@@ -18,24 +18,20 @@ type CreateCollageImageRequest struct {
 }
 
 type CollageImageHandler struct {
-	l     *log.Logger
-	repo  repository.CIRepo
-	store datastore.Store
+	repo repository.CIRepo
 }
 
 func NewCollageImageHandler(repo repository.CIRepo) *CollageImageHandler {
-	l := log.New(log.Writer(), "", log.LstdFlags)
-	store := datastore.NewStore()
-	return &CollageImageHandler{l: l, repo: repo, store: store}
+	return &CollageImageHandler{repo: repo}
 }
 
-func (cih *CollageImageHandler) GetCollageImages(w http.ResponseWriter, _ *http.Request) error {
-	cih.l.Printf("Getting CollageImages")
+func (cih *CollageImageHandler) GetCollageImages(w http.ResponseWriter, _ *http.Request, l *slog.Logger) error {
+	l.Info("Getting CollageImages")
 	collageImages, err := cih.repo.GetAll()
 	if err != nil {
 		return err
 	}
-	cih.l.Printf("Found %d CollageImages", len(collageImages))
+	l.Info(fmt.Sprintf("Found %d CollageImages", len(collageImages)))
 	response.WriteResponse(w, http.StatusOK, collageImages)
 	return nil
 }
@@ -43,8 +39,9 @@ func (cih *CollageImageHandler) GetCollageImages(w http.ResponseWriter, _ *http.
 func (cih *CollageImageHandler) GetCollageImageByCollageId(
 	w http.ResponseWriter,
 	r *http.Request,
+	l *slog.Logger,
 ) error {
-	cih.l.Printf("Getting CollageImage by ID")
+	l.Info("Getting CollageImage by ID")
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		return err
@@ -53,13 +50,13 @@ func (cih *CollageImageHandler) GetCollageImageByCollageId(
 	if err != nil {
 		return err
 	}
-	cih.l.Printf("Found CollageImage: %v", collageImage[0])
+	l.Info(fmt.Sprintf("Found CollageImage: %v", collageImage[0]))
 	response.WriteResponse(w, http.StatusOK, collageImage[0])
 	return nil
 }
 
-func (cih *CollageImageHandler) CreateCollageImage(w http.ResponseWriter, r *http.Request) error {
-	cih.l.Printf("Creating CollageImage")
+func (cih *CollageImageHandler) CreateCollageImage(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+	l.Info("Creating CollageImage")
 	var req CreateCollageImageRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -69,8 +66,8 @@ func (cih *CollageImageHandler) CreateCollageImage(w http.ResponseWriter, r *htt
 	if err != nil {
 		return err
 	}
-	cih.l.Printf("Created CollageImage with id: %s", collageImage.ID)
-	go service.GenerateCollage(collageImage)
+	l.Info(fmt.Sprintf("Created CollageImage with id: %s", collageImage.ID))
+	go service.GenerateCollage(collageImage, l)
 	response.WriteResponse(w, http.StatusCreated, collageImage)
 	return nil
 }

@@ -6,7 +6,7 @@ import (
 	"image/draw"
 	_ "image/png"
 	"io"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -15,13 +15,13 @@ import (
 
 type LocalStore struct {
 	Directory string
-	logger    *log.Logger
+	logger    *slog.Logger
 }
 
-func NewLocalStore(directory string) *LocalStore {
+func NewLocalStore(directory string, logger *slog.Logger) *LocalStore {
 	return &LocalStore{
 		Directory: directory,
-		logger:    log.New(log.Writer(), "", log.LstdFlags),
+		logger:    logger,
 	}
 }
 
@@ -32,7 +32,7 @@ func (s *LocalStore) GetRGBA(id uuid.UUID) (*image.RGBA, error) {
 	}
 	im, _, err := image.Decode(f)
 	if err != nil {
-		s.logger.Printf("Failed to decode image: %s", err)
+		s.logger.Error(fmt.Sprintf("Failed to decode image: %s", err))
 		return nil, err
 	}
 	b := im.Bounds()
@@ -43,10 +43,10 @@ func (s *LocalStore) GetRGBA(id uuid.UUID) (*image.RGBA, error) {
 
 func (s *LocalStore) GetFile(id uuid.UUID) (io.Reader, error) {
 	path := fmt.Sprintf("%s/%s", s.Directory, id.String())
-	s.logger.Printf("Getting File: %s", path)
+	s.logger.Info(fmt.Sprintf("Getting File: %s", path))
 	f, err := os.Open(path)
 	if err != nil {
-		s.logger.Printf("Failed to open File: %s", id.String())
+		s.logger.Error(fmt.Sprintf("Failed to open File: %s", id.String()))
 		return nil, err
 	}
 	return f, nil
@@ -58,10 +58,10 @@ func (s *LocalStore) PutFile(id uuid.UUID, reader io.Reader) error {
 		return err
 	}
 	defer dst.Close()
-	s.logger.Printf("Created File destination: %s", dst.Name())
+	s.logger.Info(fmt.Sprintf("Created File destination: %s", dst.Name()))
 	if _, err := io.Copy(dst, reader); err != nil {
 		return err
 	}
-	s.logger.Printf("Successfully stored File")
+	s.logger.Info(fmt.Sprintf("Successfully stored File"))
 	return nil
 }

@@ -5,8 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"image"
 	"image/color"
+	"log/slog"
 	"math"
 	"sync"
 	"time"
@@ -25,7 +27,7 @@ type CollageMetaData struct {
 	SectionMap []uuid.UUID             `json:"section_map"`
 }
 
-func CreateCollageMetaData(collage *sqlc.Collage) {
+func CreateCollageMetaData(collage *sqlc.Collage, logger *slog.Logger) {
 	serviceContext, cancel := context.WithTimeout(
 		context.Background(),
 		time.Second*30,
@@ -39,13 +41,18 @@ func CreateCollageMetaData(collage *sqlc.Collage) {
 	if err != nil {
 		panic("Couldn't create repo")
 	}
-	store := datastore.NewStore()
-	service := newCollageMetaDataService(collage, acRepo, store)
+	store := datastore.NewStore(logger)
+	service := newCollageMetaDataService(
+		collage,
+		acRepo,
+		store,
+		logger,
+	)
 	service.determineImagePlacements()
 }
 
 type collageMetaDataService struct {
-	logger     *ServiceLogger
+	logger     *slog.Logger
 	numThreads int
 	collage    *sqlc.Collage
 	acRepo     repository.ACRepo
@@ -58,21 +65,21 @@ func newCollageMetaDataService(
 	collage *sqlc.Collage,
 	acRepo repository.ACRepo,
 	store datastore.Store,
+	logger *slog.Logger,
 ) *collageMetaDataService {
-	logger := NewServiceLogger("CollageMetaData")
 	resolution := config.NewResolutionConfig()
 	sectionMap := make(
 		[]uuid.UUID,
 		resolution.XSections*resolution.YSections,
 	)
 	return &collageMetaDataService{
-		logger:     logger,
 		numThreads: 10,
 		collage:    collage,
 		acRepo:     acRepo,
 		resolution: resolution,
 		sectionMap: sectionMap,
 		store:      store,
+		logger:     logger,
 	}
 }
 
@@ -89,18 +96,18 @@ func (cs *collageMetaDataService) getAverageColors() ([]*sqlc.AverageColor, erro
 func (cs *collageMetaDataService) getSectionAverageColors() ([]color.Color, error) {
 	targetImageReader, err := cs.store.GetFile(cs.collage.TargetImageID)
 	if err != nil {
-		cs.logger.Printf(
+		cs.logger.Error(fmt.Sprintf(
 			"Failed to load target image: %s\n",
 			cs.collage.TargetImageID,
-		)
+		))
 		return nil, err
 	}
 	targetImage, _, err := image.Decode(targetImageReader)
 	if err != nil {
-		cs.logger.Printf(
+		cs.logger.Error(fmt.Sprintf(
 			"Failed to decode target image: %s\n",
 			cs.collage.TargetImageID,
-		)
+		))
 		return nil, err
 	}
 	scaledImage := resize.Resize(
@@ -129,11 +136,11 @@ func (cs *collageMetaDataService) findImagesForSections(
 	sectionAverages *[]color.Color,
 	imageSetAverageColors *[]*sqlc.AverageColor,
 ) {
-	cs.logger.Printf(
+	cs.logger.Info(fmt.Sprintf(
 		"Finding image for sections: %d-%d\n",
 		startSection,
 		startSection+numSections-1,
-	)
+	))
 	for section := startSection; section < startSection+numSections; section++ {
 		var bestFit uuid.UUID
 		bestDistance := math.MaxFloat64
@@ -167,23 +174,23 @@ func (cs *collageMetaDataService) findImagesForSections(
 //  3. Concurrently finds the best fit image by average color for each section in batches.
 //  4. Encodes the placements in a metadata file stored by collage id for deferred creation.
 func (cs *collageMetaDataService) determineImagePlacements() {
-	cs.logger.Printf("Finding image placements\n")
+	cs.logger.Info(fmt.Sprintf("Finding image placements\n"))
 	totalSections := cs.resolution.XSections * cs.resolution.YSections
 	chunkSize := totalSections / cs.numThreads
 	sectionAverages, err := cs.getSectionAverageColors()
 	if err != nil {
-		cs.logger.Printf(
+		cs.logger.Error(fmt.Sprintf(
 			"Error getting section averages\n: %s",
 			err,
-		)
+		))
 		return
 	}
 	imageSetAverages, err := cs.getAverageColors()
 	if err != nil {
-		cs.logger.Printf(
+		cs.logger.Error(fmt.Sprintf(
 			"Error getting image set average colors\n: %s",
 			err,
-		)
+		))
 		return
 	}
 	var wg sync.WaitGroup
@@ -216,11 +223,11 @@ func (cs *collageMetaDataService) createMetaDataFile() {
 	}
 	err := json.NewEncoder(&buf).Encode(metaData)
 	if err != nil {
-		cs.logger.Printf("Error encoding metadata file: %s\n", err)
+		cs.logger.Error(fmt.Sprintf("Error encoding metadata file: %s\n", err))
 		return
 	}
 	err = cs.store.PutFile(cs.collage.ID, &buf)
 	if err != nil {
-		cs.logger.Printf("Error storing metadata file: %s\n", err)
+		cs.logger.Error(fmt.Sprintf("Error storing metadata file: %s\n", err))
 	}
 }

@@ -2,12 +2,12 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/google/uuid"
 
-	"github.com/pokemonpower92/collagegenerator/internal/datastore"
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	"github.com/pokemonpower92/collagegenerator/internal/response"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
@@ -20,34 +20,26 @@ type CreateTargetImageRequest struct {
 }
 
 type TargetImageHandler struct {
-	l     *log.Logger
-	repo  repository.TIRepo
-	store datastore.Store
+	repo repository.TIRepo
 }
 
 func NewTargetImageHandler(repo repository.TIRepo) *TargetImageHandler {
-	l := log.New(log.Writer(), "", log.LstdFlags)
-	store := datastore.NewStore()
-	return &TargetImageHandler{
-		l:     l,
-		repo:  repo,
-		store: store,
-	}
+	return &TargetImageHandler{repo: repo}
 }
 
-func (tih *TargetImageHandler) GetTargetImages(w http.ResponseWriter, _ *http.Request) error {
-	tih.l.Printf("Getting TargetImages")
+func (tih *TargetImageHandler) GetTargetImages(w http.ResponseWriter, _ *http.Request, l *slog.Logger) error {
+	l.Info("Getting TargetImages")
 	targetImages, err := tih.repo.GetAll()
 	if err != nil {
 		return err
 	}
-	tih.l.Printf("Found %d target images.", len(targetImages))
+	l.Info(fmt.Sprintf("Found %d target images.", len(targetImages)))
 	response.WriteResponse(w, http.StatusOK, targetImages)
 	return nil
 }
 
-func (tih *TargetImageHandler) GetTargetImageById(w http.ResponseWriter, r *http.Request) error {
-	tih.l.Printf("Getting TargetImage by ID")
+func (tih *TargetImageHandler) GetTargetImageById(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+	l.Info("Getting TargetImage by ID")
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		return err
@@ -56,13 +48,13 @@ func (tih *TargetImageHandler) GetTargetImageById(w http.ResponseWriter, r *http
 	if err != nil {
 		return err
 	}
-	tih.l.Printf("Found TargetImage: %v", targetImage)
+	l.Info(fmt.Sprintf("Found TargetImage: %v", targetImage))
 	response.WriteResponse(w, http.StatusOK, targetImage)
 	return nil
 }
 
-func (tih *TargetImageHandler) CreateTargetImage(w http.ResponseWriter, r *http.Request) error {
-	tih.l.Printf("Creating targetimage")
+func (tih *TargetImageHandler) CreateTargetImage(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+	l.Info("Creating targetimage")
 	var req CreateTargetImageRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -76,7 +68,7 @@ func (tih *TargetImageHandler) CreateTargetImage(w http.ResponseWriter, r *http.
 	if err != nil {
 		return err
 	}
-	tih.l.Printf("Created target image with id: %s", targetImage.ID)
+	l.Info(fmt.Sprintf("Created target image with id: %s", targetImage.ID))
 	response.WriteResponse(w, http.StatusCreated, targetImage)
 	return nil
 }

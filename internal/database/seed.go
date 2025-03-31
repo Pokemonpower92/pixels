@@ -7,6 +7,7 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
+	"log/slog"
 	"math/rand"
 
 	"github.com/google/uuid"
@@ -82,7 +83,7 @@ func Seed() {
 
 	// Generates 100 random images for the seed image set
 	// and creates the average color records for them.
-	store := datastore.NewStore()
+	store := datastore.NewStore(slog.Default())
 	for range 100 {
 		randomImage := generateRandomImage(store)
 		average := imageprocessing.CalculateAverageColor(randomImage.image)
@@ -132,7 +133,7 @@ func Seed() {
 		panic(err)
 	}
 
-	service.CreateCollageMetaData(col)
+	service.CreateCollageMetaData(col, slog.Default())
 
 	ciRepo, err := repository.NewCollageImgageRepository(c, ctx)
 	if err != nil {
@@ -143,5 +144,5 @@ func Seed() {
 	if err != nil {
 		panic(err)
 	}
-	service.GenerateCollage(ci)
+	service.GenerateCollage(ci, slog.Default())
 }

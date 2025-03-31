@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"io"
+	"log/slog"
 	"reflect"
 	"testing"
 
@@ -54,6 +55,7 @@ func TestGetAverageColors(t *testing.T) {
 			test.collage,
 			&test.repo,
 			&test.store,
+			slog.Default(),
 		)
 		result, err := service.getAverageColors()
 		if !test.shouldError && err != nil {
@@ -110,7 +112,7 @@ func TestFindImagesForSections(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			service := &collageMetaDataService{
-				logger:     NewServiceLogger("test"),
+				logger:     slog.Default(),
 				sectionMap: make([]uuid.UUID, len(test.sectionAverages)),
 			}
 			service.findImagesForSections(
@@ -202,7 +204,12 @@ func TestCollageService(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			service := newCollageMetaDataService(tc.collage, &tc.repo, &tc.store)
+			service := newCollageMetaDataService(
+				tc.collage,
+				&tc.repo,
+				&tc.store,
+				slog.Default(),
+			)
 			service.determineImagePlacements()
 			if !tc.shouldError {
 				for i, section := range service.sectionMap {
@@ -270,6 +277,7 @@ func TestGetSectionAverageColors(t *testing.T) {
 				tc.collage,
 				&stubs.ACRepoStub{},
 				&tc.store,
+				slog.Default(),
 			)
 			colors, _ := service.getSectionAverageColors()
 			if !tc.shouldError && colors == nil {

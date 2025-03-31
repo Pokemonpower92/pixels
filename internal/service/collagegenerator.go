@@ -3,9 +3,11 @@ package service
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"image"
 	"image/draw"
 	"image/png"
+	"log/slog"
 	"sync"
 
 	"github.com/google/uuid"
@@ -16,9 +18,8 @@ import (
 )
 
 // GenerateCollage generates the final image for a collage.
-func GenerateCollage(collageImage *sqlc.CollageImage) {
-	logger := NewServiceLogger("CollageGenerator")
-	store := datastore.NewStore()
+func GenerateCollage(collageImage *sqlc.CollageImage, logger *slog.Logger) {
+	store := datastore.NewStore(logger)
 	generator := CollageGenerator{
 		logger:         logger,
 		store:          store,
@@ -29,31 +30,31 @@ func GenerateCollage(collageImage *sqlc.CollageImage) {
 }
 
 type CollageGenerator struct {
-	logger         *ServiceLogger
+	logger         *slog.Logger
 	store          datastore.Store
 	collageImageId uuid.UUID
 	collageId      uuid.UUID
 }
 
 func (cg *CollageGenerator) generate() {
-	cg.logger.Printf("Generating collage for collage %s\n", cg.collageId)
+	cg.logger.Info(fmt.Sprintf("Generating collage for collage %s\n", cg.collageId))
 	// Get metadata file as collageMetaData
 	metaData, err := cg.getMetaData()
 	if err != nil {
-		cg.logger.Printf("Error getting collage metadata: %v\n", err)
+		cg.logger.Error(fmt.Sprintf("Error getting collage metadata: %v\n", err))
 		return
 	}
 	// Create blank canvas.
 	canvas, err := cg.createCanvas(metaData.Resolution)
 	if err != nil {
-		cg.logger.Printf("Error getting creating canvas: %v\n", err)
+		cg.logger.Error(fmt.Sprintf("Error getting creating canvas: %v\n", err))
 		return
 	}
 	// Build image concurrently.
 	if err := cg.buildFinalImage(canvas, metaData); err != nil {
-		cg.logger.Printf("Error generating final image: %s\n", err)
+		cg.logger.Info(fmt.Sprintf("Error generating final image: %s\n", err))
 	}
-	cg.logger.Printf("Final image generated\n")
+	cg.logger.Info(fmt.Sprintf("Final image generated\n"))
 }
 
 func (cg *CollageGenerator) getMetaData() (*CollageMetaData, error) {
@@ -90,17 +91,17 @@ func (cg *CollageGenerator) fillSections(
 		fileId := metaData.SectionMap[section]
 		imageFile, err := cg.store.GetFile(fileId)
 		if err != nil {
-			cg.logger.Printf(
+			cg.logger.Error(fmt.Sprintf(
 				"Error getting fill image: %v\n",
 				err,
-			)
+			))
 		}
 		im, _, err := image.Decode(imageFile)
 		if err != nil {
-			cg.logger.Printf(
+			cg.logger.Error(fmt.Sprintf(
 				"Error decoding fill image: %v\n",
 				err,
-			)
+			))
 		}
 		// Scale it.
 		sectionWidth := metaData.Resolution.SectionWidth

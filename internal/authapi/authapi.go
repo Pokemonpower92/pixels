@@ -7,11 +7,10 @@ import (
 )
 
 func Start() {
-	h := handler.NewAuthHandler()
 	r := router.NewRouter()
 
-	r.RegisterRoute("POST /authenticate", h.Authenticate)
-	r.RegisterRoute("POST /authorize", h.Authorize)
+	r.RegisterRoute("POST /authenticate", handler.Authenticate)
+	r.RegisterRoute("POST /authorize", handler.Authorize)
 
 	s := server.NewAuthServer(r)
 	s.Start()
