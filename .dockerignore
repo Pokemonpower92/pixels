@@ -1,1 +1,31 @@
-./.env
+# Git
+.git
+.gitignore
+
+# Environment and config
+.env
+*.env
+dbconfig.yml
+
+# Build artifacts
+bin/
+build/
+coverage.out
+
+# IDE
+.vscode/
+.idea/
+
+# Documentation
+*.md
+docs/
+
+# Test files
+*_test.go
+test/
+
+# Logs
+*.log
+
+# OS specific
+.DS_Store

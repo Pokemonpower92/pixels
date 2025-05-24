@@ -4,50 +4,6 @@ import (
 	"os"
 )
 
-type RabbitMQConfig struct {
-	Host       string
-	Port       string
-	User       string
-	Password   string
-	Name       string
-	Durable    bool
-	AutoDelete bool
-	Exclusive  bool
-	NoWait     bool
-	Args       map[string]interface{}
-}
-
-func NewRabbitMQConfig() *RabbitMQConfig {
-	return &RabbitMQConfig{
-		Host:       os.Getenv("RABBITMQ_HOST"),
-		Port:       os.Getenv("RABBITMQ_PORT"),
-		User:       os.Getenv("RABBITMQ_USER"),
-		Password:   os.Getenv("RABBITMQ_PASSWORD"),
-		Name:       "hello",
-		Durable:    false,
-		AutoDelete: false,
-		Exclusive:  false,
-		NoWait:     false,
-		Args:       nil,
-	}
-}
-
-type S3Config struct {
-	Region          string
-	Bucket          string
-	AccessKeyID     string
-	SecretAccessKey string
-}
-
-func NewS3Config() *S3Config {
-	return &S3Config{
-		Region:          os.Getenv("S3_REGION"),
-		Bucket:          os.Getenv("S3_BUCKET"),
-		AccessKeyID:     os.Getenv("S3_ACCESS_KEY_ID"),
-		SecretAccessKey: os.Getenv("S3_SECRET_ACCESS_KEY"),
-	}
-}
-
 type LocalStoreConfig struct {
 	Directory string
 }
@@ -93,5 +49,33 @@ func NewResolutionConfig() *ResolutionConfig {
 		SectionHeight: 60,
 		XSections:     100,
 		YSections:     100,
+	}
+}
+
+type ServerConfig struct {
+	Host string
+	Port string
+}
+
+func NewServerConfig() *ServerConfig {
+	return &ServerConfig{
+		Host: os.Getenv("SERVER_HOST"),
+		Port: os.Getenv("SERVER_PORT"),
+	}
+}
+
+type RabbitMQConfig struct {
+	Host     string
+	Port     string
+	User     string
+	Password string
+}
+
+func NewRabbitMQConfig() *RabbitMQConfig {
+	return &RabbitMQConfig{
+		Host:     os.Getenv("RABBITMQ_HOST"),
+		Port:     os.Getenv("RABBITMQ_PORT"),
+		User:     os.Getenv("RABBITMQ_USER"),
+		Password: os.Getenv("RABBITMQ_PASSWORD"),
 	}
 }

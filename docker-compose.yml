@@ -1,0 +1,150 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8080
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=collagegenerator
+      - LOCAL_STORE_DIRECTORY=/app/store
+      - COLLAGE_WIDTH=8000
+      - COLLAGE_HEIGHT=6000
+      - SECTION_WIDTH=80
+      - SECTION_HEIGHT=60
+      - X_SECTIONS=100
+      - Y_SECTIONS=100
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+    command: ["air", "-c", ".air.toml"]  
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+
+  postgres:
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=collagegenerator
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrator:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.dev
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=collagegenerator
+    command: >
+      sh -c "go run cmd/migrate/main.go"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  thumbnail-worker:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.dev
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8080
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=collagegenerator
+      - LOCAL_STORE_DIRECTORY=/app/store
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+    command: ["air", "-c", ".air.thumbnail.toml"]  
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+
+  metadata-worker:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.dev
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8080
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=collagegenerator
+      - LOCAL_STORE_DIRECTORY=/app/store
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+    command: ["air", "-c", ".air.metadata.toml"]  
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+
+volumes:
+  postgres-data:
+  rabbitmq-data:
+  go-mod-cache:

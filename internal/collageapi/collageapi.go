@@ -71,6 +71,7 @@ func Start() {
 	r.RegisterRoute("POST /files", handler.StoreFile)
 	r.RegisterRoute("GET /files/{id}", handler.GetFileById)
 
-	s := server.NewCollageServer(r)
+	serverConfig := config.NewServerConfig()
+	s := server.NewCollageServer(r, serverConfig)
 	s.Start()
 }

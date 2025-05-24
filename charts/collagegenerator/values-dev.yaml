@@ -1,0 +1,19 @@
+app:
+  name: collagegenerator
+  replicaCount: 1
+  image:
+    repository: collagegenerator
+    tag: latest
+    pullPolicy: IfNotPresent
+  postgresql:
+  host: collage-postgresql
+  port: 5432
+  user: postgres
+  password: postgres
+  database: collage
+
+store:
+  root: /data/store
+
+# Enable migrations for local development
+runMigrations: true

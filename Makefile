@@ -25,18 +25,15 @@ run_migration: vet
 run_seed: vet
 	$(GO_CMD) run ./cmd/seed/main.go
 
-stack_deploy: 
-	$(LOCALSTACK_CMD) -b
-
-stack_clean:
-	$(LOCALSTACK_CMD) -c
-
-stack_start:
-	$(LOCALSTACK_CMD) -s
-
 collageapi: vet
 	$(GO_BUILD) -C cmd/collageapi -o ../../bin/collageapi
 
+thumbnail-worker: vet
+	$(GO_BUILD) -C cmd/thumbnail-worker -o ../../bin/thumbnail-worker
+
+metadata-worker: vet
+	$(GO_BUILD) -C cmd/metadata-worker -o ../../bin/metadata-worker
+	
 authapi: vet
 	$(GO_BUILD) -C cmd/authapi -o ../../bin/authapi
 

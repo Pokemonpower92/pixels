@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: collagegenerator-migrate
+  annotations:
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:13
+          command: ['sh', '-c', 
+            'until pg_isready -h collage-postgresql -p 5432 -U postgres; do echo waiting for postgres; sleep 2; done;']
+      containers:
+        - name: migrate
+          image: "collagegenerator:latest"
+          imagePullPolicy: IfNotPresent  # Add this line
+          command: ["/app/bin/migrate"]
+          env:
+            - name: POSTGRES_HOST
+              value: collage-postgresql
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_DB
+              value: collage
+      restartPolicy: Never
+  backoffLimit: 4

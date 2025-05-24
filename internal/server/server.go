@@ -1,9 +1,11 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/pokemonpower92/collagegenerator/config"
 	"github.com/pokemonpower92/collagegenerator/internal/router"
 )
 
@@ -20,9 +22,9 @@ func (s *Server) Start() {
 	}
 }
 
-func NewCollageServer(router *router.Router) *Server {
+func NewCollageServer(router *router.Router, config *config.ServerConfig) *Server {
 	server := &http.Server{
-		Addr:    "localhost:8000",
+		Addr:    fmt.Sprintf("%s:%s", config.Host, config.Port),
 		Handler: router.Mux,
 	}
 
