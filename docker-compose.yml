@@ -10,6 +10,7 @@ services:
     volumes:
       - .:/app
       - go-mod-cache:/go/pkg/mod
+      - resources:/app/resources
     environment:
       - SERVER_HOST=0.0.0.0
       - SERVER_PORT=8080
@@ -18,7 +19,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=collagegenerator
-      - LOCAL_STORE_DIRECTORY=/app/store
+      - STORE_DIRECTORY=resources
       - COLLAGE_WIDTH=8000
       - COLLAGE_HEIGHT=6000
       - SECTION_WIDTH=80
@@ -101,7 +102,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=collagegenerator
-      - LOCAL_STORE_DIRECTORY=/app/store
+      - STORE_DIRECTORY=resources
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
       - RABBITMQ_USER=guest
@@ -130,7 +131,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=collagegenerator
-      - LOCAL_STORE_DIRECTORY=/app/store
+      - STORE_DIRECTORY=resources
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
       - RABBITMQ_USER=guest
@@ -144,7 +145,24 @@ services:
       migrator:
         condition: service_completed_successfully
 
+  filestore:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.dev
+    ports:
+      - "8081:8081"
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+      - resources:/app/resources
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8081
+      - STORE_DIRECTORY=resources
+    command: ["air", "-c", ".air.filestore.toml"]
+
 volumes:
   postgres-data:
   rabbitmq-data:
   go-mod-cache:
+  resources:

@@ -16,7 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/nfnt/resize"
 	"github.com/pokemonpower92/collagegenerator/config"
-	"github.com/pokemonpower92/collagegenerator/internal/datastore"
+	"github.com/pokemonpower92/collagegenerator/internal/filestore"
 	"github.com/pokemonpower92/collagegenerator/internal/imageprocessing"
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
@@ -41,7 +41,7 @@ func CreateCollageMetaData(collage *sqlc.Collage, logger *slog.Logger) {
 	if err != nil {
 		panic("Couldn't create repo")
 	}
-	store := datastore.NewStore(logger)
+	store := filestore.NewStore(logger)
 	service := newCollageMetaDataService(
 		collage,
 		acRepo,
@@ -58,13 +58,13 @@ type collageMetaDataService struct {
 	acRepo     repository.ACRepo
 	resolution *config.ResolutionConfig
 	sectionMap []uuid.UUID
-	store      datastore.Store
+	store      filestore.Store
 }
 
 func newCollageMetaDataService(
 	collage *sqlc.Collage,
 	acRepo repository.ACRepo,
-	store datastore.Store,
+	store filestore.Store,
 	logger *slog.Logger,
 ) *collageMetaDataService {
 	resolution := config.NewResolutionConfig()

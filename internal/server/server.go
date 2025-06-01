@@ -34,9 +34,9 @@ func NewCollageServer(router *router.Router, config *config.ServerConfig) *Serve
 	}
 }
 
-func NewAuthServer(router *router.Router) *Server {
+func NewAuthServer(router *router.Router, config *config.ServerConfig) *Server {
 	server := &http.Server{
-		Addr:    "localhost:8001",
+		Addr:    fmt.Sprintf("%s:%s", config.Host, config.Port),
 		Handler: router.Mux,
 	}
 

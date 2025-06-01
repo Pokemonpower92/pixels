@@ -1,4 +1,4 @@
-package datastore
+package filestore
 
 import (
 	"image"
@@ -21,9 +21,5 @@ type Store interface {
 type StoreFunc = func() Store
 
 func NewStore(l *slog.Logger) Store {
-	configMap := make(map[string]StoreFunc)
-	configMap["LOCAL"] = func() Store {
-		return NewLocalStore(os.Getenv("STORE_ROOT"), l)
-	}
-	return configMap[os.Getenv("STORE_HOST")]()
+	return NewLocalStore(os.Getenv("STORE_DIRECTORY"), l)
 }

@@ -1,4 +1,4 @@
-package authapi
+package main
 
 import (
 	"github.com/pokemonpower92/collagegenerator/config"
@@ -7,13 +7,17 @@ import (
 	"github.com/pokemonpower92/collagegenerator/internal/server"
 )
 
-func Start() {
+func start() {
 	r := router.NewRouter()
 
-	r.RegisterRoute("POST /authenticate", handler.Authenticate)
-	r.RegisterRoute("POST /authorize", handler.Authorize)
+	r.RegisterRoute("POST /files", handler.StoreFile)
+	r.RegisterRoute("GET /files/{id}", handler.GetFileById)
 
 	serverConfig := config.NewServerConfig()
 	s := server.NewAuthServer(r, serverConfig)
 	s.Start()
+}
+
+func main() {
+	start()
 }

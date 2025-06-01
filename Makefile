@@ -7,23 +7,8 @@ GO_FMT=$(GO_CMD) fmt
 GO_TEST=$(GO_CMD) test
 LOCALSTACK_CMD=sh ./scripts/localstack.sh
 
-start_collageapi:
-	./bin/collageapi
-
-start_authapi:
-	./bin/authapi
-
-run_collageapi:
-	$(GO_CMD) run ./cmd/collageapi/main.go
-
-run_authapi:
-	$(GO_CMD) run ./cmd/authapi/main.go
-
-run_migration: vet
-	$(GO_CMD) run ./cmd/migrate/main.go
-
-run_seed: vet
-	$(GO_CMD) run ./cmd/seed/main.go
+authapi: vet
+	$(GO_BUILD) -C cmd/authapi -o ../../bin/authapi
 
 collageapi: vet
 	$(GO_BUILD) -C cmd/collageapi -o ../../bin/collageapi
@@ -33,10 +18,10 @@ thumbnail-worker: vet
 
 metadata-worker: vet
 	$(GO_BUILD) -C cmd/metadata-worker -o ../../bin/metadata-worker
-	
-authapi: vet
-	$(GO_BUILD) -C cmd/authapi -o ../../bin/authapi
 
+filestore: vet
+	$(GO_BUILD) -C cmd/filestore -o ../../bin/filestore
+	
 vet: fmt
 	$(GO_VET) ./...
 
@@ -51,9 +36,7 @@ clean:
 	rm ./bin/* && \
 	find ./resources -type f ! -name '.keep' -delete 
 
-
-build: collageapi authapi
-run: vet build stack_deploy run_migration run_seed
+build: collageapi authapi thumbnail-worker metadata-worker filestore
 all: vet build
 
 .PHONY: build fmt vet clean all

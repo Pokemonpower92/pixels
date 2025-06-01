@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/pokemonpower92/collagegenerator/internal/datastore"
+	"github.com/pokemonpower92/collagegenerator/internal/filestore"
 	"github.com/pokemonpower92/collagegenerator/internal/imageprocessing"
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	"github.com/pokemonpower92/collagegenerator/internal/response"
@@ -76,7 +76,7 @@ func (ach *AverageColorHandler) CreateAverageColor(w http.ResponseWriter, r *htt
 	if err != nil {
 		return err
 	}
-	store := datastore.NewStore(l)
+	store := filestore.NewStore(l)
 	image, err := store.GetRGBA(req.AverageColorID)
 	if err != nil {
 		return err

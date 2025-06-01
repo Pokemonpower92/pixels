@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/pokemonpower92/collagegenerator/internal/datastore"
+	"github.com/pokemonpower92/collagegenerator/internal/filestore"
 	"github.com/pokemonpower92/collagegenerator/internal/response"
 )
 
@@ -21,7 +21,7 @@ func GetFileById(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
 	if err != nil {
 		return err
 	}
-	store := datastore.NewStore(l)
+	store := filestore.NewStore(l)
 	image, err := store.GetFile(id)
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func GetFileById(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
 func StoreFile(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
 	l.Info("Storing File")
 	id := uuid.New()
-	store := datastore.NewStore(l)
+	store := filestore.NewStore(l)
 	if err := store.PutFile(id, r.Body); err != nil {
 		return err
 	}
