@@ -13,13 +13,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/nfnt/resize"
 	"github.com/pokemonpower92/collagegenerator/config"
-	"github.com/pokemonpower92/collagegenerator/internal/filestore"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
+	"github.com/pokemonpower92/collagegenerator/internal/store"
 )
 
 // GenerateCollage generates the final image for a collage.
 func GenerateCollage(collageImage *sqlc.CollageImage, logger *slog.Logger) {
-	store := filestore.NewStore(logger)
+	store := store.NewStore(logger)
 	generator := CollageGenerator{
 		logger:         logger,
 		store:          store,
@@ -31,7 +31,7 @@ func GenerateCollage(collageImage *sqlc.CollageImage, logger *slog.Logger) {
 
 type CollageGenerator struct {
 	logger         *slog.Logger
-	store          filestore.Store
+	store          store.Store
 	collageImageId uuid.UUID
 	collageId      uuid.UUID
 }

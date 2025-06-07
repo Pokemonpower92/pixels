@@ -1,12 +1,10 @@
 package middleware
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/pokemonpower92/collagegenerator/internal/logger"
-	"github.com/pokemonpower92/collagegenerator/internal/response"
 )
 
 func Error() Middleware {
@@ -15,14 +13,7 @@ func Error() Middleware {
 			defer func() {
 				if err := recover(); err != nil {
 					l, _ := logger.GetRequestLogger(r)
-					err := response.WriteResponse(
-						w,
-						http.StatusInternalServerError,
-						errors.New("Unknown server error."),
-					)
-					if err != nil {
-						l.Error(fmt.Sprintf("Error writing response: %+v %+v", err, w))
-					}
+					l.Error(fmt.Sprintf("Error serving request: %s", err))
 				}
 			}()
 			next.ServeHTTP(w, r)

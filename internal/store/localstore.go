@@ -1,4 +1,4 @@
-package filestore
+package store
 
 import (
 	"fmt"
@@ -25,14 +25,9 @@ func NewLocalStore(directory string, logger *slog.Logger) *LocalStore {
 	}
 }
 
-func (s *LocalStore) GetRGBA(id uuid.UUID) (*image.RGBA, error) {
-	f, err := s.GetFile(id)
+func GetRGBA(reader io.Reader) (*image.RGBA, error) {
+	im, _, err := image.Decode(reader)
 	if err != nil {
-		return nil, err
-	}
-	im, _, err := image.Decode(f)
-	if err != nil {
-		s.logger.Error(fmt.Sprintf("Failed to decode image: %s", err))
 		return nil, err
 	}
 	b := im.Bounds()

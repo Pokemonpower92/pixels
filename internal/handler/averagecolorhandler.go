@@ -8,11 +8,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/pokemonpower92/collagegenerator/internal/filestore"
+	"github.com/pokemonpower92/collagegenerator/internal/client"
 	"github.com/pokemonpower92/collagegenerator/internal/imageprocessing"
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	"github.com/pokemonpower92/collagegenerator/internal/response"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
+	"github.com/pokemonpower92/collagegenerator/internal/store"
 )
 
 type CreateAverageColorRequest struct {
@@ -76,9 +77,15 @@ func (ach *AverageColorHandler) CreateAverageColor(w http.ResponseWriter, r *htt
 	if err != nil {
 		return err
 	}
-	store := filestore.NewStore(l)
-	image, err := store.GetRGBA(req.AverageColorID)
+	fileReader := client.NewFileReader("http://filestore:8081/files/", l)
+	fileResponse, err := fileReader.GetFile(req.AverageColorID)
 	if err != nil {
+		l.Error("Error getting file", "err", err)
+		return nil
+	}
+	image, err := store.GetRGBA(fileResponse)
+	if err != nil {
+		l.Error("Error converting file", "err", err)
 		return err
 	}
 	average := imageprocessing.CalculateAverageColor(image)
@@ -92,6 +99,9 @@ func (ach *AverageColorHandler) CreateAverageColor(w http.ResponseWriter, r *htt
 		A:          int32(average.A),
 	})
 	if err != nil {
+		response.WriteResponse(w, http.StatusConflict, map[string]string{
+			"error": "Average color already exists for this image",
+		})
 		return err
 	}
 	l.Info(fmt.Sprintf("Created AverageColor with id: %s", averageColor.ID))

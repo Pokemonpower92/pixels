@@ -12,11 +12,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pokemonpower92/collagegenerator/config"
-	"github.com/pokemonpower92/collagegenerator/internal/filestore"
 	"github.com/pokemonpower92/collagegenerator/internal/imageprocessing"
 	"github.com/pokemonpower92/collagegenerator/internal/repository"
 	"github.com/pokemonpower92/collagegenerator/internal/service"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
+	"github.com/pokemonpower92/collagegenerator/internal/store"
 )
 
 type RandomImage struct {
@@ -26,7 +26,7 @@ type RandomImage struct {
 
 // Generates a 50x50 pixel image of a random, uniform color
 // and stores it in the provided store.
-func generateRandomImage(store filestore.Store) *RandomImage {
+func generateRandomImage(store store.Store) *RandomImage {
 	id := uuid.New()
 	color := color.RGBA{
 		R: uint8(rand.Intn(255)),
@@ -83,7 +83,7 @@ func Seed() {
 
 	// Generates 100 random images for the seed image set
 	// and creates the average color records for them.
-	store := filestore.NewStore(slog.Default())
+	store := store.NewStore(slog.Default())
 	for range 100 {
 		randomImage := generateRandomImage(store)
 		average := imageprocessing.CalculateAverageColor(randomImage.image)

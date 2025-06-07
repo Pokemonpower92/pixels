@@ -3,7 +3,7 @@ FROM golang:1.23
 WORKDIR /app
 
 # Install air for hot reloading
-RUN go install github.com/air-verse/air@latest
+RUN go install github.com/air-verse/air@v1.61.7
 
 # Copy go mod files
 COPY go.mod go.sum ./
@@ -11,7 +11,6 @@ RUN go mod download
 
 # Copy source
 COPY . .
-RUN mkdir resources
 
 # Default command (can be overridden in docker-compose)
 CMD ["air", "-c", ".air.toml"]

@@ -1,7 +1,6 @@
-package filestore
+package store
 
 import (
-	"image"
 	_ "image/jpeg"
 	"io"
 	"log/slog"
@@ -13,7 +12,6 @@ import (
 // Store is an interface that defines the methods
 // for retrieving and storing images.
 type Store interface {
-	GetRGBA(id uuid.UUID) (*image.RGBA, error)
 	GetFile(id uuid.UUID) (io.Reader, error)
 	PutFile(id uuid.UUID, reader io.Reader) error
 }
