@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -11,37 +10,52 @@ import (
 	"github.com/pokemonpower92/collagegenerator/internal/store"
 )
 
-func GetFiles(w http.ResponseWriter, _ *http.Request) error {
-	return nil
-}
-
-func GetFileById(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+func GetFileById(w http.ResponseWriter, r *http.Request, l *slog.Logger) {
 	l.Info("Getting File by ID")
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
-		return nil
+		l.Error(
+			"Error parsing request",
+			"error", err,
+		)
+		response.WriteErrorResponse(w, 422, err)
+		return
 	}
 	store := store.NewStore(l)
 	image, err := store.GetFile(id)
 	if err != nil {
-		return nil
+		l.Error(
+			"Error getting File",
+			"error", err,
+			"file_id", id,
+		)
+		response.WriteErrorResponse(w, 404, err)
+		return
 	}
 	_, err = io.Copy(w, image)
 	if err != nil {
-		return nil
+		l.Error(
+			"Error parsing File contents",
+			"error", err,
+		)
+		response.WriteErrorResponse(w, 500, err)
+		return
 	}
-	l.Info(fmt.Sprintf("Got File: %s", id))
-	return nil
+	l.Info("Got File", "id", id)
 }
 
-func StoreFile(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+func StoreFile(w http.ResponseWriter, r *http.Request, l *slog.Logger) {
 	l.Info("Storing File")
 	id := uuid.New()
 	store := store.NewStore(l)
 	if err := store.PutFile(id, r.Body); err != nil {
-		return err
+		l.Error(
+			"Error storing File",
+			"error", err,
+		)
+		response.WriteErrorResponse(w, 500, err)
+		return
 	}
-	l.Info("Stored File")
-	response.WriteResponse(w, http.StatusCreated, id)
-	return nil
+	l.Info("Stored File", "id", id)
+	response.WriteSuccessResponse(w, http.StatusCreated, id)
 }

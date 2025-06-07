@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -23,30 +22,30 @@ type AuthorizationResponse struct {
 	Ok bool `json:"ok"`
 }
 
-func Authenticate(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+func Authenticate(w http.ResponseWriter, r *http.Request, l *slog.Logger) {
 	l.Info("Authenticating user")
 	var req AuthRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		l.Error(fmt.Sprintf("Error parsing request: %s", err))
-		return err
+		l.Error("Error parsing request", "error", err)
+		response.WriteErrorResponse(w, 422, err)
+		return
 	}
 	auth := auth.Authenticate(req.UserName)
-	l.Info(fmt.Sprintf("Authenticated user: %s", req.UserName))
-	response.WriteResponse(w, http.StatusOK, auth)
-	return nil
+	l.Info("Authenticated user", "user_name", req.UserName)
+	response.WriteSuccessResponse(w, 200, auth)
 }
 
-func Authorize(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+func Authorize(w http.ResponseWriter, r *http.Request, l *slog.Logger) {
 	l.Info("Authorizing user")
 	var req AuthRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		l.Error(fmt.Sprintf("Error parsing request: %s", err))
-		return err
+		l.Error("Error parsing request", "error", err)
+		response.WriteErrorResponse(w, 422, err)
+		return
 	}
 	auth := auth.Authorize(req.UserName)
-	l.Info(fmt.Sprintf("Authorized user: %s", req.UserName))
-	response.WriteResponse(w, http.StatusOK, auth)
-	return nil
+	l.Info("Authorized user", "user_name", req.UserName)
+	response.WriteSuccessResponse(w, http.StatusOK, auth)
 }

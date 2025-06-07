@@ -29,64 +29,93 @@ func NewAverageColorHandler(repo repository.ACRepo) *AverageColorHandler {
 	return &AverageColorHandler{repo: repo}
 }
 
-func (ach *AverageColorHandler) GetAverageColors(w http.ResponseWriter, _ *http.Request, l *slog.Logger) error {
+func (ach *AverageColorHandler) GetAverageColors(w http.ResponseWriter, _ *http.Request, l *slog.Logger) {
 	l.Info("Getting AverageColors")
 	averageColors, err := ach.repo.GetAll()
 	if err != nil {
-		return err
+		l.Error("Error getting AverageColors", "error", err)
+		response.WriteErrorResponse(w, 500, err)
+		return
 	}
 	l.Info(fmt.Sprintf("Found %d AverageColors", len(averageColors)))
-	response.WriteResponse(w, http.StatusOK, averageColors)
-	return nil
+	response.WriteSuccessResponse(w, 200, averageColors)
 }
 
-func (ach *AverageColorHandler) GetAverageColorById(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+func (ach *AverageColorHandler) GetAverageColorById(w http.ResponseWriter, r *http.Request, l *slog.Logger) {
 	l.Info("Getting AverageColor by ID")
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
-		return err
+		l.Error("Error parsing request", "error", err)
+		response.WriteErrorResponse(w, 422, err)
+		return
 	}
 	averageColor, err := ach.repo.Get(id)
 	if err != nil {
-		return err
+		l.Error(
+			"Error getting AverageColor",
+			"error", err,
+			"id", id,
+		)
+		response.WriteErrorResponse(w, 404, err)
+		return
 	}
-	l.Info(fmt.Sprintf("Found AverageColor: %v", averageColor))
-	response.WriteResponse(w, http.StatusOK, averageColor)
-	return nil
+	l.Info("Found AverageColor", "average_color", averageColor)
+	response.WriteSuccessResponse(w, 200, averageColor)
 }
 
-func (ach *AverageColorHandler) GetByImageSetId(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+func (ach *AverageColorHandler) GetByImageSetId(w http.ResponseWriter, r *http.Request, l *slog.Logger) {
 	l.Info("Getting AverageColor by ImageSet ID")
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
-		return err
+		l.Error("Error parsing request", "error", err)
+		response.WriteErrorResponse(w, 422, err)
+		return
 	}
 	averageColors, err := ach.repo.GetByResourceId(id)
 	if err != nil {
-		return err
+		l.Error(
+			"Error getting AverageColor by ImageSet id",
+			"error", err,
+			"image_set_id", id,
+		)
+		response.WriteErrorResponse(w, 404, err)
+		return
 	}
 	l.Info(fmt.Sprintf("Found %d AverageColors", len(averageColors)))
-	response.WriteResponse(w, http.StatusOK, averageColors)
-	return nil
+	response.WriteSuccessResponse(w, 200, averageColors)
 }
 
-func (ach *AverageColorHandler) CreateAverageColor(w http.ResponseWriter, r *http.Request, l *slog.Logger) error {
+func (ach *AverageColorHandler) CreateAverageColor(w http.ResponseWriter, r *http.Request, l *slog.Logger) {
 	l.Info("Creating AverageColor")
 	var req CreateAverageColorRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		return err
+		l.Error(
+			"Error parsing request",
+			"error", err,
+			"request", r.Body,
+		)
+		response.WriteErrorResponse(w, 422, err)
+		return
+	}
+	existing, err := ach.repo.Get(req.AverageColorID)
+	if err == nil && existing != nil {
+		l.Info("AverageColor already exists", "id", req.AverageColorID)
+		response.WriteSuccessResponse(w, 200, existing)
+		return
 	}
 	fileReader := client.NewFileReader("http://filestore:8081/files/", l)
 	fileResponse, err := fileReader.GetFile(req.AverageColorID)
 	if err != nil {
-		l.Error("Error getting file", "err", err)
-		return nil
+		l.Error("Error getting file", "error", err)
+		response.WriteErrorResponse(w, 404, err)
+		return
 	}
 	image, err := store.GetRGBA(fileResponse)
 	if err != nil {
 		l.Error("Error converting file", "err", err)
-		return err
+		response.WriteErrorResponse(w, 500, err)
+		return
 	}
 	average := imageprocessing.CalculateAverageColor(image)
 	averageColor, err := ach.repo.Create(sqlc.CreateAverageColorParams{
@@ -99,12 +128,10 @@ func (ach *AverageColorHandler) CreateAverageColor(w http.ResponseWriter, r *htt
 		A:          int32(average.A),
 	})
 	if err != nil {
-		response.WriteResponse(w, http.StatusConflict, map[string]string{
-			"error": "Average color already exists for this image",
-		})
-		return err
+		l.Error("Error creating AverageColor", "error", err)
+		response.WriteErrorResponse(w, 500, err)
+		return
 	}
-	l.Info(fmt.Sprintf("Created AverageColor with id: %s", averageColor.ID))
-	response.WriteResponse(w, http.StatusCreated, averageColor)
-	return nil
+	l.Info("Created AverageColor", "id", averageColor.ID)
+	response.WriteSuccessResponse(w, 201, averageColor)
 }
