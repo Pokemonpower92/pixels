@@ -26,9 +26,9 @@ jobs:
       - name: Detect Services
         id: set-matrix
         run: |
-          SERVICES=$(find cmd -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
-          echo "matrix={\"service\":[\"$SERVICES\"]}" >> $GITHUB_OUTPUT
-
+          SERVICES=$(find cmd -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | jq -R -s -c 'split("\n")[:-1]')
+          echo "matrix={\"service\":$SERVICES}" >> $GITHUB_OUTPUT
+          
   build-and-push:
     needs: detect-changes
     runs-on: ubuntu-latest
