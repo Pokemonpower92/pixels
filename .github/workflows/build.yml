@@ -1,0 +1,80 @@
+name: Build and Publish
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "cmd/**"
+      - "internal/**"
+      - ".github/workflows/**"
+      - "build/**"  
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Detect Services
+        id: set-matrix
+        run: |
+          SERVICES=$(find cmd -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
+          echo "matrix={\"service\":[\"$SERVICES\"]}" >> $GITHUB_OUTPUT
+
+  build-and-push:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.matrix).service }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get latest version
+        id: version
+        run: |
+          LATEST_TAG=$(git describe --tags --match "${{ matrix.service }}@*" --abbrev=0 2>/dev/null || echo "${{ matrix.service }}@v0.0.0")
+          CURRENT_VERSION=$(echo $LATEST_TAG | cut -d'@' -f2)
+          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
+          echo "new_tag=${{ matrix.service }}@$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+      - name: Create new tag
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git tag "${{ steps.version.outputs.new_tag }}"
+          git push origin "${{ steps.version.outputs.new_tag }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set repository name
+        id: repo
+        run: |
+          echo "repo=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./build/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:${{ steps.version.outputs.version }}
+            ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:latest
+          build-args: |
+            SERVICE_NAME=${{ matrix.service }}
