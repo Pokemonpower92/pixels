@@ -23,7 +23,7 @@ clean:
 	$(GO_CLEAN) && \
 	rm ./bin/* && \
 
-build: collageapi 
+build: api 
 all: vet build
 
 .PHONY: build fmt vet clean all
