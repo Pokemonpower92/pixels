@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pixels
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pixels
+  template:
+    metadata:
+      labels:
+        app: pixels
+    spec:
+      serviceAccountName: pixels-sa
+      imagePullSecrets:
+        - name: ghcr-secret
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 3000
+      containers:
+        - name: pixels
+          image: pixels:latest
+          ports:
+            - containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          envFrom:
+            - configMapRef:
+                name: pixels-config
+            - secretRef:
+                name: pixels-secrets

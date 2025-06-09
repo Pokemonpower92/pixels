@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pixels-network-policy
+spec:
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: pixels-production
+      ports:
+        - protocol: TCP
+          port: 8080
+    - ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: pixels-production
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
