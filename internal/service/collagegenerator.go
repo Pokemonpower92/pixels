@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
+	"image/color/palette"
 	"image/draw"
 	"image/png"
 	"log/slog"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/google/uuid"
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/nfnt/resize"
 	"github.com/pokemonpower92/collagegenerator/config"
 	"github.com/pokemonpower92/collagegenerator/internal/client"
 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
@@ -113,42 +113,18 @@ func (cg *CollageGenerator) fillSections(
 	metaData *CollageMetaData,
 ) {
 	for section := start; section < start+chunkSize; section++ {
-		// Load image for section.
-		im, err := cg.getImage(metaData.SectionMap[section])
-		if err != nil {
-			cg.logger.Error(fmt.Sprintf(
-				"Error getting fill image: %v\n",
-				err,
-			))
-		}
-		// Scale it.
-		sectionWidth := metaData.Resolution.SectionWidth
-		sectionHeight := metaData.Resolution.SectionHeight
-		scaledImage := resize.Resize(
-			uint(sectionWidth),
-			uint(sectionHeight),
-			im,
-			resize.Lanczos2,
-		)
-		// Draw it where it needs to go on the canvas.
-		numColumns := metaData.Resolution.CollageWidth / sectionWidth
+		// Get color from WebSafe palette
+		paletteColor := palette.WebSafe[metaData.SectionMap[section]]
+
+		// Calculate section position (just the top-left pixel)
+		numColumns := metaData.Resolution.CollageWidth / metaData.Resolution.SectionWidth
 		row := section / numColumns
 		col := section % numColumns
-		startingPoint := image.Point{
-			X: sectionWidth * col,
-			Y: sectionHeight * row,
-		}
-		bounds := image.Rectangle{
-			Min: startingPoint,
-			Max: startingPoint.Add(scaledImage.Bounds().Size()),
-		}
-		draw.Draw(
-			canvas,
-			bounds,
-			scaledImage,
-			scaledImage.Bounds().Min,
-			draw.Src,
-		)
+		x := metaData.Resolution.SectionWidth * col
+		y := metaData.Resolution.SectionHeight * row
+
+		// Draw single pixel
+		canvas.Set(x, y, paletteColor)
 	}
 }
 

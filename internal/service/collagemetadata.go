@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/color/palette"
 	"log/slog"
 	"math"
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/nfnt/resize"
 	"github.com/pokemonpower92/collagegenerator/config"
 	"github.com/pokemonpower92/collagegenerator/internal/client"
@@ -24,7 +24,7 @@ import (
 
 type CollageMetaData struct {
 	Resolution config.ResolutionConfig `json:"resolution"`
-	SectionMap []uuid.UUID             `json:"section_map"`
+	SectionMap []int                   `json:"section_map"`
 }
 
 func CreateCollageMetaData(collage *sqlc.Collage, logger *slog.Logger) {
@@ -57,7 +57,7 @@ type collageMetaDataService struct {
 	collage    *sqlc.Collage
 	acRepo     repository.ACRepo
 	resolution *config.ResolutionConfig
-	sectionMap []uuid.UUID
+	sectionMap []int
 	store      client.FileStore
 }
 
@@ -69,7 +69,7 @@ func newCollageMetaDataService(
 ) *collageMetaDataService {
 	resolution := config.NewResolutionConfig()
 	sectionMap := make(
-		[]uuid.UUID,
+		[]int,
 		resolution.XSections*resolution.YSections,
 	)
 	return &collageMetaDataService{
@@ -142,24 +142,17 @@ func (cs *collageMetaDataService) findImagesForSections(
 		startSection+numSections-1,
 	))
 	for section := startSection; section < startSection+numSections; section++ {
-		var bestFit uuid.UUID
+		var bestFit int
 		bestDistance := math.MaxFloat64
 		sectionAverage := (*sectionAverages)[section]
-		for _, averageColor := range *imageSetAverageColors {
-			// Scale up 8-bit to 16-bit
-			dbColor := imageprocessing.RGB16{
-				R: uint16(averageColor.R) * 257, // Scale up to full 16-bit range
-				G: uint16(averageColor.G) * 257,
-				B: uint16(averageColor.B) * 257,
-			}
-
+		for index, paletteColor := range palette.WebSafe {
 			distance := imageprocessing.CalculateColorDistance(
-				dbColor,
+				paletteColor,
 				sectionAverage,
 			)
 
 			if distance < bestDistance {
-				bestFit = averageColor.ID
+				bestFit = index
 				bestDistance = distance
 			}
 		}
