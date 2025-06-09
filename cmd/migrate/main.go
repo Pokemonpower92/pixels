@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/pokemonpower92/collagegenerator/config"
-	"github.com/pokemonpower92/collagegenerator/internal/database"
-	"github.com/pokemonpower92/collagegenerator/internal/repository"
+	"github.com/pokemonpower92/pixels/config"
+	"github.com/pokemonpower92/pixels/internal/database"
+	"github.com/pokemonpower92/pixels/internal/repository"
 )
 
 func main() {

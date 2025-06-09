@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/pokemonpower92/collagegenerator/internal/logger"
+	"github.com/pokemonpower92/pixels/internal/logger"
 )
 
 // Inject required objects into the request's context.

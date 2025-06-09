@@ -3,9 +3,15 @@ package imageprocessing
 import (
 	"image"
 	"image/color"
+	"image/color/palette"
 	_ "image/jpeg"
 	_ "image/png"
+	"io"
+	"log/slog"
 	"math"
+
+	"github.com/nfnt/resize"
+	"github.com/pokemonpower92/pixels/config"
 )
 
 // 16-bit RGBA for more fidelity.
@@ -62,4 +68,60 @@ func CalculateColorDistance(c1, c2 color.Color) float64 {
 	b := bf1 - bf2
 
 	return math.Sqrt(r*r + g*g + b*b)
+}
+
+func GetSectionColors(
+	imageData io.Reader,
+	logger *slog.Logger,
+	resolution config.ResolutionConfig,
+) ([]int, error) {
+	targetImage, _, err := image.Decode(imageData)
+	if err != nil {
+		logger.Error("Failed to decode target image")
+		return nil, err
+	}
+	scaledImage := resize.Resize(
+		uint(resolution.XSections),
+		uint(resolution.YSections),
+		targetImage,
+		resize.Lanczos2,
+	)
+	bounds := scaledImage.Bounds()
+	sectionMap := make([]int, bounds.Dx()*bounds.Dy())
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			var bestFit int
+			bestDistance := math.MaxFloat64
+			for index, paletteColor := range palette.WebSafe {
+				distance := CalculateColorDistance(
+					paletteColor,
+					scaledImage.At(x, y),
+				)
+
+				if distance < bestDistance {
+					bestFit = index
+					bestDistance = distance
+				}
+			}
+			sectionMap[y*bounds.Dx()+x] = bestFit
+		}
+	}
+	return sectionMap, nil
+}
+
+func CreateImage(
+	sectionMap []int,
+	resolution config.ResolutionConfig,
+) *image.RGBA {
+	img := image.NewRGBA(image.Rect(0, 0, resolution.XSections, resolution.YSections))
+
+	for y := 0; y < resolution.YSections; y++ {
+		for x := 0; x < resolution.XSections; x++ {
+			index := y*resolution.XSections + x
+			paletteIndex := sectionMap[index]
+			img.Set(x, y, palette.WebSafe[paletteIndex])
+		}
+	}
+
+	return img
 }

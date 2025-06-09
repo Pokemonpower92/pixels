@@ -1,46 +1,8 @@
 package config
 
 import (
-	"log/slog"
 	"os"
 )
-
-type LocalStoreConfig struct {
-	Directory string
-}
-
-func NewLocalStoreConfig() *LocalStoreConfig {
-	return &LocalStoreConfig{
-		Directory: os.Getenv("LOCAL_STORE_DIRECTORY"),
-	}
-}
-
-// RMQConfig is the configuration for rabbitmq senders
-type RMQConfig struct {
-	Host     string
-	User     string
-	Password string
-	Port     string
-	L        *slog.Logger
-}
-
-func NewRMQConfig(L *slog.Logger) *RMQConfig {
-	return &RMQConfig{
-		Host:     os.Getenv("RABBITMQ_HOST"),
-		User:     os.Getenv("RABBITMQ_USER"),
-		Password: os.Getenv("RABBITMQ_PASSWORD"),
-		Port:     os.Getenv("RABBITMQ_PORT"),
-		L:        L,
-	}
-}
-
-func THUMBNAIL_QUEUE() string {
-	return "thumbnail_jobs"
-}
-
-func METADATA_QUEUE() string {
-	return "metadata_jobs"
-}
 
 type DBConfig struct {
 	Host     string
@@ -71,12 +33,12 @@ type ResolutionConfig struct {
 
 func NewResolutionConfig() *ResolutionConfig {
 	return &ResolutionConfig{
-		CollageWidth:  32,
-		CollageHeight: 32,
+		CollageWidth:  64,
+		CollageHeight: 64,
 		SectionWidth:  1,
 		SectionHeight: 1,
-		XSections:     32,
-		YSections:     32,
+		XSections:     64,
+		YSections:     64,
 	}
 }
 
@@ -89,21 +51,5 @@ func NewServerConfig() *ServerConfig {
 	return &ServerConfig{
 		Host: os.Getenv("SERVER_HOST"),
 		Port: os.Getenv("SERVER_PORT"),
-	}
-}
-
-type RabbitMQConfig struct {
-	Host     string
-	Port     string
-	User     string
-	Password string
-}
-
-func NewRabbitMQConfig() *RabbitMQConfig {
-	return &RabbitMQConfig{
-		Host:     os.Getenv("RABBITMQ_HOST"),
-		Port:     os.Getenv("RABBITMQ_PORT"),
-		User:     os.Getenv("RABBITMQ_USER"),
-		Password: os.Getenv("RABBITMQ_PASSWORD"),
 	}
 }

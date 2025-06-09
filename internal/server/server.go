@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/pokemonpower92/collagegenerator/config"
-	"github.com/pokemonpower92/collagegenerator/internal/router"
+	"github.com/pokemonpower92/pixels/config"
+	"github.com/pokemonpower92/pixels/internal/router"
 )
 
 type Server struct {

@@ -10,8 +10,8 @@ package service
 // 	"testing"
 
 // 	"github.com/google/uuid"
-// 	sqlc "github.com/pokemonpower92/collagegenerator/internal/sqlc/generated"
-// 	"github.com/pokemonpower92/collagegenerator/internal/stubs"
+// 	sqlc "github.com/pokemonpower92/pixels/internal/sqlc/generated"
+// 	"github.com/pokemonpower92/pixels/internal/stubs"
 // )
 
 // func TestGetAverageColors(t *testing.T) {

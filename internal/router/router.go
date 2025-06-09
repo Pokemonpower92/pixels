@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/pokemonpower92/collagegenerator/internal/logger"
-	"github.com/pokemonpower92/collagegenerator/internal/middleware"
+	"github.com/pokemonpower92/pixels/internal/logger"
+	"github.com/pokemonpower92/pixels/internal/middleware"
 )
 
 type ApiFunc func(http.ResponseWriter, *http.Request, *slog.Logger)

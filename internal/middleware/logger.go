@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pokemonpower92/collagegenerator/internal/logger"
+	"github.com/pokemonpower92/pixels/internal/logger"
 )
 
 func Logger() Middleware {

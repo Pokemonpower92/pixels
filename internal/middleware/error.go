@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/pokemonpower92/collagegenerator/internal/logger"
+	"github.com/pokemonpower92/pixels/internal/logger"
 )
 
 func Error() Middleware {
