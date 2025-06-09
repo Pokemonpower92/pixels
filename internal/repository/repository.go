@@ -65,7 +65,6 @@ func (ir *ImageRepository) Close() {
 }
 
 func (ir *ImageRepository) Get(id uuid.UUID) (*sqlc.Image, error) {
-	ir.logger.Info("Getting image")
 	Image, err := ir.q.GetImage(ir.ctx, id)
 	if err != nil {
 		return nil, err
@@ -74,7 +73,6 @@ func (ir *ImageRepository) Get(id uuid.UUID) (*sqlc.Image, error) {
 }
 
 func (ir *ImageRepository) GetAll() ([]*sqlc.Image, error) {
-	ir.logger.Info("Getting all images")
 	Images, err := ir.q.ListImages(ir.ctx)
 	if err != nil {
 		return nil, err
@@ -83,7 +81,6 @@ func (ir *ImageRepository) GetAll() ([]*sqlc.Image, error) {
 }
 
 func (ir *ImageRepository) Create(image []byte) (*sqlc.Image, error) {
-	ir.logger.Info("Creating images")
 	Image, err := ir.q.CreateImage(ir.ctx, image)
 	if err != nil {
 		return nil, err
