@@ -13,7 +13,6 @@ import (
 func main() {
 	time.Sleep(1000 * time.Millisecond)
 	log.Printf("Migrating database...")
-	config.LoadEnvironmentVariables()
 	postgresConfig := config.NewPostgresConfig()
 	connString := repository.GetConnectionString(postgresConfig)
 	config, err := pgx.ParseConfig(connString)

@@ -1,6 +1,7 @@
-# Collage Generator
+# Pixels
 
-This is the api for the collage generation application.
+This is the backend for the pixels application.
+It takes any png and creates a pixelated replica of it.
 
 Requires go 1.22^
 
@@ -33,7 +34,5 @@ Requires go 1.22^
 5. Start the local server(ensure docker is installed and running):
 
    ```
-   make start
+   docker compose up
    ```
-
-A postman collection is provided in the project root.

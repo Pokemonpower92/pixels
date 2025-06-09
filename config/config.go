@@ -33,12 +33,12 @@ type ResolutionConfig struct {
 
 func NewResolutionConfig() *ResolutionConfig {
 	return &ResolutionConfig{
-		CollageWidth:  64,
-		CollageHeight: 64,
+		CollageWidth:  32,
+		CollageHeight: 32,
 		SectionWidth:  1,
 		SectionHeight: 1,
-		XSections:     64,
-		YSections:     64,
+		XSections:     32,
+		YSections:     32,
 	}
 }
 
