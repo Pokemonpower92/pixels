@@ -21,14 +21,16 @@ func Start() {
 	}
 	defer imageRepo.Close()
 
-	handler := handler.NewImageHandler(
+	h := handler.NewImageHandler(
 		imageRepo,
 		*config.NewResolutionConfig(),
 		slog.Default(),
 	)
-	r.RegisterRoute("GET /images/{id}", handler.GetImage)
-	r.RegisterRoute("GET /images", handler.GetImages)
-	r.RegisterRoute("POST /images", handler.CreateImage)
+	r.RegisterRoute("GET /images/{id}", h.GetImage)
+	r.RegisterRoute("GET /images", h.GetImages)
+	r.RegisterRoute("POST /images", h.CreateImage)
+
+	r.RegisterRoute("GET /healthcheck", handler.HealthCheck)
 
 	serverConfig := config.NewServerConfig()
 	s := server.NewAuthServer(r, serverConfig)

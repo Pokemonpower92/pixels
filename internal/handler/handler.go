@@ -147,3 +147,7 @@ func (h *ImageHandler) CreateImage(w http.ResponseWriter, r *http.Request, l *sl
 	l.Info("Created image", "id", image.ID, "size", len(processedImageData))
 	response.WriteSuccessResponse(w, http.StatusCreated, metadata)
 }
+
+func HealthCheck(w http.ResponseWriter, r *http.Request, l *slog.Logger) {
+	response.WriteSuccessResponse(w, http.StatusOK, "ok")
+}
