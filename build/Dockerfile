@@ -22,8 +22,11 @@ FROM alpine:latest
 
 WORKDIR /app
 
-# Copy with fixed name
+# Copy the binary
 COPY --from=builder /app/service /app/service
+
+# Copy migration files (needed for migrate service)
+COPY --from=builder /app/internal/sqlc/migrations /app/internal/sqlc/migrations
 
 # Expose the port your app runs on
 EXPOSE 8080

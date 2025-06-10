@@ -1,20 +1,18 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
 - ../../base
-
 namespace: pixels-staging
-
-
 patches:
 - path: configmap.yaml
-- path: networkpolicy-patch.yaml
-
-
+- path: postgres-configmap-patch.yaml
+- path: migration-job-patch.yaml
 images:
   - name: pixels
     newName: ghcr.io/pokemonpower92/pixels/api
+    newTag: latest
+  - name: migrate
+    newName: ghcr.io/pokemonpower92/pixels/migrate
     newTag: latest
 labels:
 - includeSelectors: true
