@@ -33,6 +33,6 @@ func Start() {
 	r.RegisterRoute("GET /healthcheck", handler.HealthCheck)
 
 	serverConfig := config.NewServerConfig()
-	s := server.NewAuthServer(r, serverConfig)
+	s := server.NewServer(r, serverConfig)
 	s.Start()
 }

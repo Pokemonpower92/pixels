@@ -34,7 +34,7 @@ func (r *Router) RegisterRoute(path string, handler ApiFunc) {
 	handlerFunc := makeHttpHandler(handler)
 	stdMiddleware := middleware.New(
 		middleware.Context(),
-		middleware.Logger(),
+		middleware.Timer(),
 	)
 	handlerFunc = stdMiddleware.Use(handlerFunc)
 	r.Mux.HandleFunc(path, handlerFunc.ServeHTTP)

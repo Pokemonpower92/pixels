@@ -3,7 +3,6 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"image/png"
 	"io"
@@ -124,27 +123,9 @@ func (h *ImageHandler) GetImage(w http.ResponseWriter, r *http.Request, l *slog.
 	l.Info("Served image", "id", id, "size", len(image.ImageData))
 }
 
-func validateCreate(r *http.Request) error {
-	switch contentType := r.Header.Get("Content-Type"); contentType {
-	case "image/png":
-	case "image/jpeg":
-	case "image/webp":
-		return nil
-	default:
-		// return errors.New(fmt.Sprintf("Unsupported Content-Type: %s", contentType))
-		return nil
-	}
-	return errors.New("Could not validate create request")
-}
-
 // CreateImage accepts raw PNG binary data, processes it, and stores the result
 func (h *ImageHandler) CreateImage(w http.ResponseWriter, r *http.Request, l *slog.Logger) {
 	l.Info("Creating image")
-	if err := validateCreate(r); err != nil {
-		l.Error("Invalid content type", "content_type", r.Header.Get("Content-Type"))
-		WriteErrorResponse(w, 400, fmt.Errorf("only PNG images are allowed"))
-		return
-	}
 	imageData, err := io.ReadAll(r.Body)
 	if err != nil {
 		l.Error("Error reading request body", "error", err)

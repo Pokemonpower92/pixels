@@ -8,15 +8,9 @@ RUN go install github.com/air-verse/air@latest
 # Install build dependencies
 RUN apk add --no-cache gcc musl-dev make
 
-# Copy go mod files (go.sum is optional)
+# Copy go mod files and download dependencies
 COPY go.mod ./
 RUN go mod download
 
-# Copy the rest of the code
-COPY . .
-
-# Build the application
-ARG SERVICE_NAME
-RUN go build -o /app/bin/$SERVICE_NAME ./cmd/$SERVICE_NAME
-
-CMD ["air", "-c", ".air.$SERVICE_NAME.toml"]
+# Air will handle building and running
+CMD ["air", "-c", ".air.toml"]

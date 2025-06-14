@@ -22,19 +22,7 @@ func (s *Server) Start() {
 	}
 }
 
-func NewCollageServer(router *router.Router, config *config.ServerConfig) *Server {
-	server := &http.Server{
-		Addr:    fmt.Sprintf("%s:%s", config.Host, config.Port),
-		Handler: router.Mux,
-	}
-
-	return &Server{
-		server: server,
-		router: router,
-	}
-}
-
-func NewAuthServer(router *router.Router, config *config.ServerConfig) *Server {
+func NewServer(router *router.Router, config *config.ServerConfig) *Server {
 	server := &http.Server{
 		Addr:    fmt.Sprintf("%s:%s", config.Host, config.Port),
 		Handler: router.Mux,
