@@ -18,13 +18,13 @@ func Auth(sessionizer session.Sessionizer) Middleware {
 			l, _ := logger.GetRequestLogger(r)
 			cookie, err := r.Cookie("session_id")
 			if err != nil {
-				l.Debug("No session cookie found")
+				l.Info("No session cookie found")
 				response.WriteErrorResponse(w, 401, err)
 				return
 			}
 			ok, userID := sessionizer.FindSession(uuid.MustParse(cookie.Value))
 			if !ok {
-				l.Debug("Invalid session", "session_id", cookie.Value, "error", err)
+				l.Info("Invalid session", "session_id", cookie.Value, "error", err)
 				response.WriteErrorResponse(w, 401, errors.New("Invalid Session"))
 				return
 			}
