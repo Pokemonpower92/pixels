@@ -13,19 +13,25 @@ import (
 
 const createImage = `-- name: CreateImage :one
 INSERT INTO images (
-  id, image_data, created_at, updated_at
+  id, user_id, image_data, created_at, updated_at
 ) VALUES (
-  uuid_generate_v4(), $1, NOW(), NOW() 
+  uuid_generate_v4(), $1, $2, NOW(), NOW() 
 )
-RETURNING db_id, id, image_data, created_at, updated_at
+RETURNING db_id, id, user_id, image_data, created_at, updated_at
 `
 
-func (q *Queries) CreateImage(ctx context.Context, imageData []byte) (*Image, error) {
-	row := q.db.QueryRow(ctx, createImage, imageData)
+type CreateImageParams struct {
+	UserID    uuid.UUID `json:"user_id"`
+	ImageData []byte    `json:"image_data"`
+}
+
+func (q *Queries) CreateImage(ctx context.Context, arg CreateImageParams) (*Image, error) {
+	row := q.db.QueryRow(ctx, createImage, arg.UserID, arg.ImageData)
 	var i Image
 	err := row.Scan(
 		&i.DbID,
 		&i.ID,
+		&i.UserID,
 		&i.ImageData,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -34,16 +40,22 @@ func (q *Queries) CreateImage(ctx context.Context, imageData []byte) (*Image, er
 }
 
 const getImage = `-- name: GetImage :one
-SELECT db_id, id, image_data, created_at, updated_at FROM images
-WHERE id = $1 LIMIT 1
+SELECT db_id, id, user_id, image_data, created_at, updated_at FROM images
+WHERE id = $1 AND user_id = $2 LIMIT 1
 `
 
-func (q *Queries) GetImage(ctx context.Context, id uuid.UUID) (*Image, error) {
-	row := q.db.QueryRow(ctx, getImage, id)
+type GetImageParams struct {
+	ID     uuid.UUID `json:"id"`
+	UserID uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) GetImage(ctx context.Context, arg GetImageParams) (*Image, error) {
+	row := q.db.QueryRow(ctx, getImage, arg.ID, arg.UserID)
 	var i Image
 	err := row.Scan(
 		&i.DbID,
 		&i.ID,
+		&i.UserID,
 		&i.ImageData,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -52,12 +64,12 @@ func (q *Queries) GetImage(ctx context.Context, id uuid.UUID) (*Image, error) {
 }
 
 const listImages = `-- name: ListImages :many
-SELECT db_id, id, image_data, created_at, updated_at FROM images
-ORDER BY created_at
+SELECT db_id, id, user_id, image_data, created_at, updated_at FROM images
+WHERE user_id = $1
 `
 
-func (q *Queries) ListImages(ctx context.Context) ([]*Image, error) {
-	rows, err := q.db.Query(ctx, listImages)
+func (q *Queries) ListImages(ctx context.Context, userID uuid.UUID) ([]*Image, error) {
+	rows, err := q.db.Query(ctx, listImages, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +80,7 @@ func (q *Queries) ListImages(ctx context.Context) ([]*Image, error) {
 		if err := rows.Scan(
 			&i.DbID,
 			&i.ID,
+			&i.UserID,
 			&i.ImageData,
 			&i.CreatedAt,
 			&i.UpdatedAt,

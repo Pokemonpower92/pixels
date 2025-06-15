@@ -9,6 +9,7 @@ import (
 	"github.com/pokemonpower92/pixels/internal/repository"
 	"github.com/pokemonpower92/pixels/internal/router"
 	"github.com/pokemonpower92/pixels/internal/server"
+	"github.com/pokemonpower92/pixels/internal/session"
 )
 
 func Start() {
@@ -26,11 +27,25 @@ func Start() {
 		*config.NewResolutionConfig(),
 		slog.Default(),
 	)
-	r.RegisterRoute("GET /images/{id}", h.GetImage)
-	r.RegisterRoute("GET /images", h.GetImages)
-	r.RegisterRoute("POST /images", h.CreateImage)
+	sessionizer := session.NewSessionStore()
+	r.RegisterProtectedRoute("GET /images/{id}", sessionizer, h.GetImage)
+	r.RegisterProtectedRoute("GET /images", sessionizer, h.GetImages)
+	r.RegisterProtectedRoute("POST /images", sessionizer, h.CreateImage)
 
-	r.RegisterRoute("GET /healthcheck", handler.HealthCheck)
+	userRepo, err := repository.NewUserRepository(c, ctx)
+	if err != nil {
+		panic(err)
+	}
+	defer userRepo.Close()
+	authHandler := handler.NewAuthHandler(
+		userRepo,
+		sessionizer,
+		slog.Default(),
+	)
+	r.RegisterUnprotectedRoute("POST /users", authHandler.CreateUser)
+	r.RegisterUnprotectedRoute("POST /login", authHandler.Login)
+
+	r.RegisterUnprotectedRoute("GET /healthcheck", handler.HealthCheck)
 
 	serverConfig := config.NewServerConfig()
 	s := server.NewServer(r, serverConfig)
