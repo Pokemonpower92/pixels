@@ -6,6 +6,7 @@ import (
 
 	"github.com/pokemonpower92/pixels/internal/logger"
 	"github.com/pokemonpower92/pixels/internal/middleware"
+	"github.com/pokemonpower92/pixels/internal/session"
 )
 
 type ApiFunc func(http.ResponseWriter, *http.Request, *slog.Logger)
@@ -30,7 +31,25 @@ func NewRouter() *Router {
 	return &Router{Mux: sm}
 }
 
-func (r *Router) RegisterRoute(path string, handler ApiFunc) {
+func (r *Router) RegisterProtectedRoute(
+	path string,
+	sessionizer session.Sessionizer,
+	handler ApiFunc,
+) {
+	handlerFunc := makeHttpHandler(handler)
+	stdMiddleware := middleware.New(
+		middleware.Context(),
+		middleware.Auth(sessionizer),
+		middleware.Timer(),
+	)
+	handlerFunc = stdMiddleware.Use(handlerFunc)
+	r.Mux.HandleFunc(path, handlerFunc.ServeHTTP)
+}
+
+func (r *Router) RegisterUnprotectedRoute(
+	path string,
+	handler ApiFunc,
+) {
 	handlerFunc := makeHttpHandler(handler)
 	stdMiddleware := middleware.New(
 		middleware.Context(),

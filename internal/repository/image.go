@@ -25,11 +25,11 @@ func GetConnectionString(config *config.DBConfig) string {
 	)
 }
 
-// Repository is an interface for sqlc queries
-type Repository interface {
-	Get(id uuid.UUID) (*sqlc.Image, error)
-	GetAll() ([]*sqlc.Image, error)
-	Create(image []byte) (*sqlc.Image, error)
+// ImageModeler is an interface for sqlc queries
+type ImageModeler interface {
+	Get(sqlc.GetImageParams) (*sqlc.Image, error)
+	GetAll(userId uuid.UUID) ([]*sqlc.Image, error)
+	Create(sqlc.CreateImageParams) (*sqlc.Image, error)
 }
 
 type ImageRepository struct {
@@ -64,24 +64,24 @@ func (ir *ImageRepository) Close() {
 	ir.client.Close()
 }
 
-func (ir *ImageRepository) Get(id uuid.UUID) (*sqlc.Image, error) {
-	Image, err := ir.q.GetImage(ir.ctx, id)
+func (ir *ImageRepository) Get(query sqlc.GetImageParams) (*sqlc.Image, error) {
+	Image, err := ir.q.GetImage(ir.ctx, query)
 	if err != nil {
 		return nil, err
 	}
 	return Image, nil
 }
 
-func (ir *ImageRepository) GetAll() ([]*sqlc.Image, error) {
-	Images, err := ir.q.ListImages(ir.ctx)
+func (ir *ImageRepository) GetAll(userId uuid.UUID) ([]*sqlc.Image, error) {
+	Images, err := ir.q.ListImages(ir.ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 	return Images, nil
 }
 
-func (ir *ImageRepository) Create(image []byte) (*sqlc.Image, error) {
-	Image, err := ir.q.CreateImage(ir.ctx, image)
+func (ir *ImageRepository) Create(query sqlc.CreateImageParams) (*sqlc.Image, error) {
+	Image, err := ir.q.CreateImage(ir.ctx, query)
 	if err != nil {
 		return nil, err
 	}

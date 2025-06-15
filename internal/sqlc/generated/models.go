@@ -12,7 +12,17 @@ import (
 type Image struct {
 	DbID      int32            `json:"db_id"`
 	ID        uuid.UUID        `json:"id"`
+	UserID    uuid.UUID        `json:"user_id"`
 	ImageData []byte           `json:"image_data"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+}
+
+type User struct {
+	DbID      int32            `json:"db_id"`
+	ID        uuid.UUID        `json:"id"`
+	UserName  string           `json:"user_name"`
+	Password  string           `json:"password"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 }
