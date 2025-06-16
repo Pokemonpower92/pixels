@@ -35,6 +35,9 @@ jobs:
     strategy:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.matrix).service }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      new_tag: ${{ steps.version.outputs.new_tag }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -78,3 +81,37 @@ jobs:
             ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:latest
           build-args: |
             SERVICE_NAME=${{ matrix.service }}
+
+  deploy-staging:
+    needs: [detect-changes, build-and-push]
+    runs-on: [self-hosted, k3s, pixels]  # Using your self-hosted runner
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.matrix).service }}
+    environment: staging  # Optional: adds environment protection
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up environment variables
+        run: |
+          echo "GITHUB_USERNAME=${{ github.actor }}" >> $GITHUB_ENV
+          echo "GITHUB_PAT=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+          echo "GITHUB_EMAIL=${{ github.actor }}@users.noreply.github.com" >> $GITHUB_ENV
+      
+      - name: Deploy to staging
+        run: |
+          # Ensure we have kubectl access
+          export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+          
+          # Deploy using your Makefile
+          make deploy-staging SERVICE_NAME=${{ matrix.service }}
+          
+      - name: Verify deployment
+        run: |
+          export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+          
+          # Wait for deployment to be ready
+          kubectl rollout status deployment/${{ matrix.service }} -n pixels-staging --timeout=300s
+          
+          # Show status
+          make k8s-status
