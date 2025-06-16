@@ -89,10 +89,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up kubectl alias
+      - name: Install kubectl
         run: |
-          # K3s includes kubectl functionality
-          sudo ln -sf /usr/local/bin/k3s /usr/local/bin/kubectl || true
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          kubectl version --client
           
       - name: Set up environment variables
         run: |
