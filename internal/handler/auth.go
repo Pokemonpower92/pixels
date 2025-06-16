@@ -112,7 +112,6 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request, l *slog.Logg
 		SameSite: http.SameSiteStrictMode,
 		MaxAge:   86400 * 7,
 		HttpOnly: true,
-		Secure:   true,
 	})
 	response.WriteSuccessResponse(
 		w,

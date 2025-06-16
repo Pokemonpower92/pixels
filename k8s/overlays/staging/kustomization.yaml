@@ -6,7 +6,6 @@ namespace: pixels-staging
 patches:
 - path: configmap.yaml
 - path: postgres-configmap-patch.yaml
-- path: migration-job-patch.yaml
 images:
   - name: pixels
     newName: ghcr.io/pokemonpower92/pixels/api
