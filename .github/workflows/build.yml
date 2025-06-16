@@ -85,13 +85,15 @@ jobs:
   deploy-staging:
     needs: [detect-changes, build-and-push]
     runs-on: [self-hosted, k3s, pixels]  # Using your self-hosted runner
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.matrix).service }}
     environment: staging  # Optional: adds environment protection
     steps:
       - uses: actions/checkout@v4
       
+      - name: Set up kubectl alias
+        run: |
+          # K3s includes kubectl functionality
+          sudo ln -sf /usr/local/bin/k3s /usr/local/bin/kubectl || true
+          
       - name: Set up environment variables
         run: |
           echo "GITHUB_USERNAME=${{ github.actor }}" >> $GITHUB_ENV
@@ -104,14 +106,11 @@ jobs:
           export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
           
           # Deploy using your Makefile
-          make deploy-staging SERVICE_NAME=${{ matrix.service }}
+          make deploy-staging
           
       - name: Verify deployment
         run: |
           export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-          
-          # Wait for deployment to be ready
-          kubectl rollout status deployment/${{ matrix.service }} -n pixels-staging --timeout=300s
           
           # Show status
           make k8s-status
