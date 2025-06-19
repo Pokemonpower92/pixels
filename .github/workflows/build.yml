@@ -94,9 +94,8 @@ jobs:
       - name: Deploy service to staging via Argo CD
         run: |
           SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-          argocd login localhost:8081 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure || exit 1
-          argocd app set pixels-staging \
-          --kustomize-image ${{ matrix.service }}=ghcr.io/pokemonpower92/pixels/${{ matrix.service }}:${SHORT_SHA}
+          argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
+          argocd app set pixels-staging --kustomize-image ${{ matrix.service }}=ghcr.io/pokemonpower92/pixels/${{ matrix.service }}:${SHORT_SHA}
           echo "✅ Updated ${{ matrix.service }} to ${SHORT_SHA}"
 
   sync-deployment:
@@ -115,7 +114,7 @@ jobs:
       - name: Sync and verify deployment
         run: |
           SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-          argocd login localhost:8081 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure || exit 1
+          argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
           argocd app sync pixels-staging --timeout 300
           argocd app wait pixels-staging --timeout 600
           argocd app get pixels-staging --output json | jq -r '.status.health.status' | grep -q "Healthy"
