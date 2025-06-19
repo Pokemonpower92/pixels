@@ -115,6 +115,7 @@ jobs:
         run: |
           SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
           argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
+          kubectl delete job pixels-migration -n pixels-staging --ignore-not-found=true
           argocd app sync pixels-staging --timeout 300
           argocd app wait pixels-staging --timeout 600
           argocd app get pixels-staging --output json | jq -r '.status.health.status' | grep -q "Healthy"
