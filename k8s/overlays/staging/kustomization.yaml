@@ -9,8 +9,10 @@ patches:
 images:
   - name: pixels
     newName: ghcr.io/pokemonpower92/pixels/api
+    newTag: latest
   - name: migrate
     newName: ghcr.io/pokemonpower92/pixels/migrate
+    newTag: latest
 labels:
 - includeSelectors: true
   pairs:

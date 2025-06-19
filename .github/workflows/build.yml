@@ -97,10 +97,10 @@ jobs:
           argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
           if [ "${{ matrix.service }}" = "api" ]; then
             echo "Setting pixels image override..."
-            argocd app set pixels-staging --kustomize-image ghcr.io/pokemonpower92/pixels/api:latest=ghcr.io/pokemonpower92/pixels/api:${{ needs.detect-changes.outputs.short_sha }}
+            argocd app set pixels-staging --kustomize-image pixels=ghcr.io/pokemonpower92/pixels/api:${{ needs.detect-changes.outputs.short_sha }}
           elif [ "${{ matrix.service }}" = "migrate" ]; then
             echo "Setting migrate image override..."
-            argocd app set pixels-staging --kustomize-image ghcr.io/pokemonpower92/pixels/migrate:latest=ghcr.io/pokemonpower92/pixels/migrate:${{ needs.detect-changes.outputs.short_sha }}
+            argocd app set pixels-staging --kustomize-image migrate=ghcr.io/pokemonpower92/pixels/migrate:${{ needs.detect-changes.outputs.short_sha }}
           fi
           echo "✅ Updated ${{ matrix.service }} to ${{ needs.detect-changes.outputs.short_sha }}"
 
