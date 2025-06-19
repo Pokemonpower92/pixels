@@ -81,38 +81,4 @@ jobs:
             ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:latest
           build-args: |
             SERVICE_NAME=${{ matrix.service }}
-
-  deploy-staging:
-    needs: [detect-changes, build-and-push]
-    runs-on: [self-hosted, k3s, pixels]  # Using your self-hosted runner
-    environment: staging  # Optional: adds environment protection
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-          kubectl version --client
-          
-      - name: Set up environment variables
-        run: |
-          echo "GITHUB_USERNAME=${{ github.actor }}" >> $GITHUB_ENV
-          echo "GITHUB_PAT=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-          echo "GITHUB_EMAIL=${{ github.actor }}@users.noreply.github.com" >> $GITHUB_ENV
-      
-      - name: Deploy to staging
-        run: |
-          # Ensure we have kubectl access
-          export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-          
-          # Deploy using your Makefile
-          make deploy-staging
-          
-      - name: Verify deployment
-        run: |
-          export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-          
-          # Show status
-          make k8s-status
+            
