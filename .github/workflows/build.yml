@@ -88,6 +88,7 @@ jobs:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.matrix).service }}
     steps:
+      - uses: actions/checkout@v4
       - name: Install Argo CD CLI
         run: |
           if ! command -v argocd &> /dev/null; then
@@ -108,6 +109,7 @@ jobs:
     runs-on: [self-hosted, k3s, pixels]
     if: github.ref == 'refs/heads/main' && always() && !cancelled()
     steps:
+      - uses: actions/checkout@v4
       - name: Install kubectl
         run: |
           if ! command -v kubectl &> /dev/null; then
