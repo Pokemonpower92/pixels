@@ -95,7 +95,7 @@ jobs:
         run: |
           SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
           argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
-          argocd app set pixels-staging --kustomize-image ${{ matrix.service }}=ghcr.io/pokemonpower92/pixels/${{ matrix.service }}:${SHORT_SHA}
+          argocd app set pixels-staging --kustomize-image ${{ matrix.service }}=ghcr.io/pokemonpower92/pixels/${{ matrix.service }}:${github.sha}
           echo "✅ Updated ${{ matrix.service }} to ${SHORT_SHA}"
 
   sync-deployment:
