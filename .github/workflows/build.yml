@@ -50,20 +50,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Get latest version
-        id: version
-        run: |
-          LATEST_TAG=$(git describe --tags --match "${{ matrix.service }}@*" --abbrev=0 2>/dev/null || echo "${{ matrix.service }}@v0.0.0")
-          CURRENT_VERSION=$(echo $LATEST_TAG | cut -d'@' -f2)
-          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
-          echo "new_tag=${{ matrix.service }}@$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
       - name: Create new tag
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git tag "${{ steps.version.outputs.new_tag }}"
-          git push origin "${{ steps.version.outputs.new_tag }}"
+          git tag "${{ matrix.service }}-${GITHUB_SHA:0:7}"
+          git push origin "${{ matrix.service }}-${GITHUB_SHA:0:7}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Set repository name
@@ -74,11 +66,46 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./build/Dockerfile
+          file: ./build/Dockerfile  
           push: true
           tags: |
-            ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:${{ steps.version.outputs.version }}
+            ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:${{ GITHUB_SHA:0:7 }}
             ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:latest
           build-args: |
             SERVICE_NAME=${{ matrix.service }}
             
+deploy-staging:
+    needs: [detect-changes, build-and-push]
+    runs-on: [self-hosted, k3s, pixels]
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.matrix).service }}
+    steps:
+      - name: Install Argo CD CLI
+        run: |
+          if ! command -v argocd &> /dev/null; then
+            curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+            chmod +x /tmp/argocd
+            sudo mv /tmp/argocd /usr/local/bin/argocd
+          fi
+          
+      - name: Deploy service to staging via Argo CD
+        run: |
+          IMAGE_TAG=${GITHUB_SHA:0:7}
+          argocd login localhost:8081 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure || exit 1
+          argocd app set pixels-staging \
+          --kustomize-image ${{ matrix.service }}=ghcr.io/pokemonpower92/pixels/${{ matrix.service }}:${IMAGE_TAG}
+          echo "✅ Updated ${{ matrix.service }} to ${IMAGE_TAG}"}
+          
+      - name: Sync deployment (only once after all services updated)
+        if: strategy.job-index == strategy.job-total - 1
+        run: |
+          argocd app sync pixels-staging --timeout 300
+          argocd app wait pixels-staging --timeout 600
+          
+      - name: Verify deployment
+        if: strategy.job-index == strategy.job-total - 1
+        run: |
+          argocd app get pixels-staging --output json | jq -r '.status.health.status' | grep -q "Healthy"
+          echo "✅ Deployment successful: ${GITHUB_SHA:0:7}"
