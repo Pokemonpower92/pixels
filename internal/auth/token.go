@@ -2,6 +2,11 @@ package jwt
 
 import (
 	"crypto/ecdsa"
+	"crypto/x509"
+	"encoding/pem"
+	"fmt"
+	"os"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	sqlc "github.com/pokemonpower92/pixels/internal/sqlc/generated"
@@ -12,20 +17,36 @@ type TokenManager interface {
 }
 
 type JwtManager struct {
-	privateKey *ecdsa.PrivateKey
-	publicKey  *ecdsa.PublicKey
+	PrivateKey *ecdsa.PrivateKey
+}
+
+func GetPrivateKey() (*ecdsa.PrivateKey, error) {
+	privateKeyPEM := os.Getenv("JWT_PRIVATE_KEY")
+	if privateKeyPEM == "" {
+		return nil, fmt.Errorf("JWT_PRIVATE_KEY environment variable is required")
+	}
+
+	block, _ := pem.Decode([]byte(privateKeyPEM))
+	if block == nil {
+		return nil, fmt.Errorf("failed to parse PEM block containing the private key")
+	}
+
+	return x509.ParseECPrivateKey(block.Bytes)
 }
 
 func (jm *JwtManager) Generate(user *sqlc.User) (error, string) {
 	t := jwt.NewWithClaims(
 		jwt.SigningMethodES256,
-		jwt.MapClaims{
-			"iss": "pixels",
-			"sub": user.ID.String(),
-			"aud": "pixels",
+		jwt.RegisteredClaims{
+			Issuer:    "pixels",
+			Audience:  []string{"pixels"},
+			Subject:   user.ID.String(),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
 		},
 	)
-	s, err := t.SignedString(jm.privateKey)
+	s, err := t.SignedString(jm.PrivateKey)
 	if err != nil {
 		return err, ""
 	}
