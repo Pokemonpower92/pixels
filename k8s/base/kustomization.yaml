@@ -15,3 +15,6 @@ resources:
 - postgres-deployment.yaml
 - postgres-service.yaml
 - migration-job.yaml
+
+configurations:
+- kustomizeconfig.yaml

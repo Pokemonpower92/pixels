@@ -95,7 +95,13 @@ jobs:
       - name: Deploy service to staging via Argo CD
         run: |
           argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
-          argocd app set pixels-staging --kustomize-image ghcr.io/pokemonpower92/pixels/${{ matrix.service }}:latest=ghcr.io/pokemonpower92/pixels/${{ matrix.service }}:${{ needs.detect-changes.outputs.short_sha }}
+          if [ "${{ matrix.service }}" = "api" ]; then
+            echo "Setting pixels image parameter..."
+            argocd app set pixels-staging --parameter pixels.tag=${{ needs.detect-changes.outputs.short_sha }}
+          elif [ "${{ matrix.service }}" = "migrate" ]; then
+            echo "Setting migrate image parameter..."
+            argocd app set pixels-staging --parameter migrate.tag=${{ needs.detect-changes.outputs.short_sha }}
+          fi
           echo "✅ Updated ${{ matrix.service }} to ${{ needs.detect-changes.outputs.short_sha }}"
 
   sync-deployment:

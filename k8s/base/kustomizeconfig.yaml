@@ -1,0 +1,20 @@
+nameReference:
+- kind: ConfigMap
+  version: v1
+  fieldSpecs:
+  - path: spec/template/spec/containers/image
+    kind: Deployment
+
+varReference:
+- var: pixels.tag
+  objref:
+    kind: Kustomization
+    apiVersion: kustomize.config.k8s.io/v1beta1
+  fieldref:
+    fieldpath: images[name=pixels].newTag
+- var: migrate.tag
+  objref:
+    kind: Kustomization
+    apiVersion: kustomize.config.k8s.io/v1beta1
+  fieldref:
+    fieldpath: images[name=migrate].newTag
