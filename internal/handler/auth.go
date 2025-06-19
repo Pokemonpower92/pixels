@@ -82,7 +82,7 @@ func (h *AuthHandler) CreateUser(w http.ResponseWriter, r *http.Request, l *slog
 
 // Login logs a user in.
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request, l *slog.Logger) {
-	l.Info("Logging in user")
+	l.Info("Logging in user right now")
 	var req UserRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
