@@ -54,8 +54,9 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git tag "${{ matrix.service }}-${GITHUB_SHA:0:7}"
-          git push origin "${{ matrix.service }}-${GITHUB_SHA:0:7}"
+          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+          git tag "${{ matrix.service }}-${SHORT_SHA}"
+          git push origin "${{ matrix.service }}-${SHORT_SHA}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Set repository name
@@ -69,12 +70,12 @@ jobs:
           file: ./build/Dockerfile  
           push: true
           tags: |
-            ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:${{ GITHUB_SHA:0:7 }}
+            ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:${{ github.sha }}
             ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:latest
           build-args: |
             SERVICE_NAME=${{ matrix.service }}
             
-deploy-staging:
+  deploy-staging:
     needs: [detect-changes, build-and-push]
     runs-on: [self-hosted, k3s, pixels]
     if: github.ref == 'refs/heads/main'
@@ -92,11 +93,11 @@ deploy-staging:
           
       - name: Deploy service to staging via Argo CD
         run: |
-          IMAGE_TAG=${GITHUB_SHA:0:7}
+          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
           argocd login localhost:8081 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure || exit 1
           argocd app set pixels-staging \
-          --kustomize-image ${{ matrix.service }}=ghcr.io/pokemonpower92/pixels/${{ matrix.service }}:${IMAGE_TAG}
-          echo "✅ Updated ${{ matrix.service }} to ${IMAGE_TAG}"}
+          --kustomize-image ${{ matrix.service }}=ghcr.io/pokemonpower92/pixels/${{ matrix.service }}:${SHORT_SHA}
+          echo "✅ Updated ${{ matrix.service }} to ${SHORT_SHA}"
           
       - name: Sync deployment (only once after all services updated)
         if: strategy.job-index == strategy.job-total - 1
@@ -107,5 +108,6 @@ deploy-staging:
       - name: Verify deployment
         if: strategy.job-index == strategy.job-total - 1
         run: |
+          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
           argocd app get pixels-staging --output json | jq -r '.status.health.status' | grep -q "Healthy"
-          echo "✅ Deployment successful: ${GITHUB_SHA:0:7}"
+          echo "✅ Deployment successful: ${SHORT_SHA}"
