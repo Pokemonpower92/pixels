@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
+      short_sha: ${{ steps.set-sha.outputs.short_sha }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,6 +29,11 @@ jobs:
         run: |
           SERVICES=$(find cmd -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | jq -R -s -c 'split("\n")[:-1]')
           echo "matrix={\"service\":$SERVICES}" >> $GITHUB_OUTPUT
+      - name: Set short SHA
+        id: set-sha
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
           
   build-and-push:
     needs: detect-changes
@@ -35,9 +41,6 @@ jobs:
     strategy:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.matrix).service }}
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-      new_tag: ${{ steps.version.outputs.new_tag }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -54,10 +57,8 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          git tag "${{ matrix.service }}-${SHORT_SHA}"
-          git push origin "${{ matrix.service }}-${SHORT_SHA}"
-          echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_ENV
+          git tag "${{ matrix.service }}-${{ needs.detect-changes.outputs.short_sha }}"
+          git push origin "${{ matrix.service }}-${{ needs.detect-changes.outputs.short_sha }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Set repository name
@@ -65,17 +66,13 @@ jobs:
         run: |
           echo "repo=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
       - name: Build and push
-        run: |
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_ENV
-      - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./build/Dockerfile  
           push: true
           tags: |
-            ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:${{ env.SHORT_SHA }}
+            ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:${{ needs.detect-changes.outputs.short_sha }}
             ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:latest
           build-args: |
             SERVICE_NAME=${{ matrix.service }}
@@ -88,7 +85,6 @@ jobs:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.matrix).service }}
     steps:
-      - uses: actions/checkout@v4
       - name: Install Argo CD CLI
         run: |
           if ! command -v argocd &> /dev/null; then
@@ -96,20 +92,17 @@ jobs:
             chmod +x /tmp/argocd
             sudo mv /tmp/argocd /usr/local/bin/argocd
           fi
-          
       - name: Deploy service to staging via Argo CD
         run: |
-          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
           argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
-          argocd app set pixels-staging --kustomize-image ${{ matrix.service }}=ghcr.io/pokemonpower92/pixels/${{ matrix.service }}:${SHORT_SHA}
-          echo "✅ Updated ${{ matrix.service }} to ${SHORT_SHA}"
+          argocd app set pixels-staging --kustomize-image ghcr.io/pokemonpower92/pixels/${{ matrix.service }}:latest=ghcr.io/pokemonpower92/pixels/${{ matrix.service }}:${{ needs.detect-changes.outputs.short_sha }}
+          echo "✅ Updated ${{ matrix.service }} to ${{ needs.detect-changes.outputs.short_sha }}"
 
   sync-deployment:
-    needs: [deploy-staging]
+    needs: [detect-changes, deploy-staging]
     runs-on: [self-hosted, k3s, pixels]
     if: github.ref == 'refs/heads/main' && always() && !cancelled()
     steps:
-      - uses: actions/checkout@v4
       - name: Install kubectl
         run: |
           if ! command -v kubectl &> /dev/null; then
@@ -117,7 +110,6 @@ jobs:
             chmod +x kubectl
             sudo mv kubectl /usr/local/bin/
           fi
-          
       - name: Install Argo CD CLI
         run: |
           if ! command -v argocd &> /dev/null; then
@@ -125,13 +117,11 @@ jobs:
             chmod +x /tmp/argocd
             sudo mv /tmp/argocd /usr/local/bin/argocd
           fi
-          
       - name: Sync and verify deployment
         run: |
-          SHORT_SHA=$(git rev-parse --short HEAD)
           argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
           kubectl delete job pixels-migration -n pixels-staging --ignore-not-found=true
           argocd app sync pixels-staging --timeout 300
           argocd app wait pixels-staging --timeout 600
           argocd app get pixels-staging --output json | jq -r '.status.health.status' | grep -q "Healthy"
-          echo "✅ Deployment successful: ${SHORT_SHA}"
+          echo "✅ Deployment successful: ${{ needs.detect-changes.outputs.short_sha }}"
