@@ -36,3 +36,5 @@ Requires go 1.22^
    ```
    docker compose up
    ```
+
+`make help` will provide helpful development commands
