@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/pokemonpower92/pixels/config"
+	"github.com/pokemonpower92/pixels/internal/auth"
 	"github.com/pokemonpower92/pixels/internal/handler"
 	"github.com/pokemonpower92/pixels/internal/repository"
 	"github.com/pokemonpower92/pixels/internal/router"
@@ -27,7 +28,12 @@ func Start() {
 		*config.NewResolutionConfig(),
 		slog.Default(),
 	)
-	sessionizer := session.NewSessionStore()
+	privateKey, err := auth.GetPrivateKey(config.PrivateKeyPem())
+	if err != nil {
+		panic(err)
+	}
+	jwtManager := auth.JwtManager{PrivateKey: privateKey}
+	sessionizer := session.NewJWTSessionizer(&jwtManager)
 	r.RegisterProtectedRoute("GET /images/{id}", sessionizer, h.GetImage)
 	r.RegisterProtectedRoute("GET /images", sessionizer, h.GetImages)
 	r.RegisterProtectedRoute("POST /images", sessionizer, h.CreateImage)

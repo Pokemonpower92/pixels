@@ -7,28 +7,27 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"testing"
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func createTestECPrivateKeyPEM() (string, *ecdsa.PrivateKey, error) {
-	// Generate a new ECDSA private key
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return "", nil, err
 	}
 
-	// Marshal the private key to DER format
 	keyBytes, err := x509.MarshalECPrivateKey(privateKey)
 	if err != nil {
 		return "", nil, err
 	}
 
-	// Create PEM block
 	pemBlock := &pem.Block{
 		Type:  "EC PRIVATE KEY",
 		Bytes: keyBytes,
 	}
 
-	// Encode to PEM format
 	pemData := pem.EncodeToMemory(pemBlock)
 
 	return string(pemData), privateKey, nil
@@ -110,9 +109,131 @@ aW52YWxpZC1kYXRh
 					t.Errorf("Test %s failed: expected private key but got nil", test.name)
 					return
 				}
-				// Verify the key is the same by comparing the public key
 				if !result.PublicKey.Equal(&expectedKey.PublicKey) {
 					t.Errorf("Test %s failed: returned key does not match expected key", test.name)
+				}
+			}
+		})
+	}
+}
+
+func TestJwtManager_Verify(t *testing.T) {
+	_, privateKey, err := createTestECPrivateKeyPEM()
+	if err != nil {
+		t.Fatalf("Failed to create test private key: %v", err)
+	}
+
+	jwtManager := &JwtManager{
+		PrivateKey: privateKey,
+	}
+
+	validClaims := jwt.RegisteredClaims{
+		Issuer:    "pixels",
+		Audience:  []string{"pixels"},
+		Subject:   "test-user-123",
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+		IssuedAt:  jwt.NewNumericDate(time.Now()),
+		NotBefore: jwt.NewNumericDate(time.Now()),
+	}
+
+	validToken, _ := jwt.NewWithClaims(jwt.SigningMethodES256, validClaims).SignedString(privateKey)
+
+	expiredClaims := validClaims
+	expiredClaims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(-1 * time.Hour))
+	expiredToken, _ := jwt.NewWithClaims(jwt.SigningMethodES256, expiredClaims).SignedString(privateKey)
+
+	wrongIssuerClaims := validClaims
+	wrongIssuerClaims.Issuer = "wrong-issuer"
+	wrongIssuerToken, _ := jwt.NewWithClaims(jwt.SigningMethodES256, wrongIssuerClaims).SignedString(privateKey)
+
+	wrongAudienceClaims := validClaims
+	wrongAudienceClaims.Audience = []string{"wrong-audience"}
+	wrongAudienceToken, _ := jwt.NewWithClaims(jwt.SigningMethodES256, wrongAudienceClaims).SignedString(privateKey)
+
+	multiAudienceClaims := validClaims
+	multiAudienceClaims.Audience = []string{"pixels", "other-service"}
+	multiAudienceToken, _ := jwt.NewWithClaims(jwt.SigningMethodES256, multiAudienceClaims).SignedString(privateKey)
+
+	wrongAlgToken, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, validClaims).SignedString([]byte("secret"))
+
+	otherKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	wrongKeyToken, _ := jwt.NewWithClaims(jwt.SigningMethodES256, validClaims).SignedString(otherKey)
+
+	testCases := []struct {
+		name        string
+		token       string
+		expectError bool
+		errorText   string
+	}{
+		{
+			name:        "valid token",
+			token:       validToken,
+			expectError: false,
+		},
+		{
+			name:        "expired token",
+			token:       expiredToken,
+			expectError: true,
+			errorText:   "expired",
+		},
+		{
+			name:        "wrong issuer",
+			token:       wrongIssuerToken,
+			expectError: true,
+			errorText:   "invalid issuer",
+		},
+		{
+			name:        "wrong audience",
+			token:       wrongAudienceToken,
+			expectError: true,
+			errorText:   "invalid audience",
+		},
+		{
+			name:        "multiple audiences valid",
+			token:       multiAudienceToken,
+			expectError: false,
+		},
+		{
+			name:        "wrong signing algorithm",
+			token:       wrongAlgToken,
+			expectError: true,
+			errorText:   "unexpected signing method",
+		},
+		{
+			name:        "wrong signing key",
+			token:       wrongKeyToken,
+			expectError: true,
+			errorText:   "verification error",
+		},
+		{
+			name:        "malformed token",
+			token:       "invalid.token.format",
+			expectError: true,
+		},
+		{
+			name:        "empty token",
+			token:       "",
+			expectError: true,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			claims, err := jwtManager.Verify(test.token)
+
+			if test.expectError {
+				if err == nil {
+					t.Errorf("expected error but got none")
+				}
+				if claims != nil {
+					t.Errorf("expected nil claims but got %v", claims)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+				if claims == nil {
+					t.Errorf("expected claims but got nil")
 				}
 			}
 		})
