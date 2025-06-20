@@ -6,10 +6,10 @@ WORKDIR /app
 RUN go install github.com/air-verse/air@latest
 
 # Install build dependencies
-RUN apk add --no-cache gcc musl-dev make
+RUN apk add --no-cache gcc musl-dev make git
 
 # Copy go mod files and download dependencies
-COPY go.mod ./
+COPY go.mod go.sum ./
 RUN go mod download
 
 # Air will handle building and running
