@@ -1,35 +1,37 @@
-# Build stage
 FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apk add --no-cache gcc musl-dev
+RUN apk add --no-cache gcc musl-dev ca-certificates git
 
-# Copy go mod files (go.sum is optional)
-COPY go.mod ./
-RUN go mod download
+COPY go.mod go.sum ./
 
-# Copy the rest of the code
+RUN go mod download && go mod verify
+
 COPY . .
 
-# Build the application
 ARG SERVICE_NAME
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/service ./cmd/$SERVICE_NAME
 
-# Final stage
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags="-w -s" \
+    -trimpath \
+    -o /app/service \
+    ./cmd/${SERVICE_NAME}
+
 FROM alpine:latest
+
+RUN apk add --no-cache ca-certificates tzdata && \
+    update-ca-certificates && \
+    addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
 
 WORKDIR /app
 
-# Copy the binary
-COPY --from=builder /app/service /app/service
+COPY --from=builder --chown=appuser:appgroup /app/service /app/service
+COPY --from=builder --chown=appuser:appgroup /app/internal/sqlc/migrations /app/internal/sqlc/migrations
 
-# Copy migration files (needed for migrate service)
-COPY --from=builder /app/internal/sqlc/migrations /app/internal/sqlc/migrations
+USER appuser
 
-# Expose the port your app runs on
 EXPOSE 8080
 
-# Run the binary
 CMD ["/app/service"]

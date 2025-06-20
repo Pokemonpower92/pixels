@@ -1,20 +1,27 @@
 # Git
 .git
 .gitignore
+.gitattributes
 
 # Environment and config
 .env
 *.env
 dbconfig.yml
+.air.toml
 
 # Build artifacts
 bin/
 build/
+coverage/
 coverage.out
+*.out
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # Documentation
 *.md
@@ -23,9 +30,29 @@ docs/
 # Test files
 *_test.go
 test/
+testdata/
 
 # Logs
 *.log
 
 # OS specific
 .DS_Store
+Thumbs.db
+
+# Docker specific
+Dockerfile.dev
+docker-compose*.yml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Kubernetes (shouldn't be in containers)
+k8s/
+
+# Go specific
+vendor/ # if using vendor mode
+
+# Temporary files
+tmp/
+temp/
