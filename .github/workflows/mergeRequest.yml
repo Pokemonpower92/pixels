@@ -1,4 +1,4 @@
-name: MergeRequest Pipeline
+name: Test Coverage
 
 on:
   pull_request:
@@ -29,15 +29,8 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
-      - name: Cache Go modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+      - name: Create coverage directory
+        run: mkdir -p coverage
 
       - name: Run tests with coverage
         run: make test-coverage-html
