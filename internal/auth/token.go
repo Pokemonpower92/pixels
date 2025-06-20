@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 )
 
 type TokenManager interface {
-	Generate(user *sqlc.User) (error, string)
+	Generate(user *sqlc.User) (string, error)
 }
 
 type JwtManager struct {
@@ -27,7 +28,7 @@ func GetPrivateKey(privateKeyPEM string) (*ecdsa.PrivateKey, error) {
 	return x509.ParseECPrivateKey(block.Bytes)
 }
 
-func (jm *JwtManager) Generate(user *sqlc.User) (error, string) {
+func (jm *JwtManager) Generate(user *sqlc.User) (string, error) {
 	t := jwt.NewWithClaims(
 		jwt.SigningMethodES256,
 		jwt.RegisteredClaims{
@@ -41,11 +42,43 @@ func (jm *JwtManager) Generate(user *sqlc.User) (error, string) {
 	)
 	s, err := t.SignedString(jm.PrivateKey)
 	if err != nil {
-		return err, ""
+		return "", err
 	}
-	return nil, s
+	return s, nil
 }
 
-func (jm *JwtManager) Verify(token string) error {
-	return nil
+func (jm *JwtManager) Verify(tokenString string) (*jwt.RegisteredClaims, error) {
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&jwt.RegisteredClaims{},
+		func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodECDSA); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return &jm.PrivateKey.PublicKey, nil
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !token.Valid {
+		return nil, errors.New("token is invalid")
+	}
+	claims, ok := token.Claims.(*jwt.RegisteredClaims)
+	if !ok {
+		return nil, errors.New("invalid claims")
+	}
+	if claims.Issuer != "pixels" {
+		return nil, errors.New("invalid issuer")
+	}
+	for _, aud := range claims.Audience {
+		includes := false
+		if aud == "pixels" {
+			break
+		}
+		if !includes {
+			return nil, errors.New("invalid audience")
+		}
+	}
+	return claims, nil
 }

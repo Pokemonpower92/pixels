@@ -105,10 +105,15 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request, l *slog.Logg
 		response.WriteErrorResponse(w, 403, err)
 		return
 	}
-	sessionId := h.sessionizer.CreateSession(user.ID)
+	sessionId, err := h.sessionizer.CreateSession(user.ID)
+	if err != nil {
+		l.Error("Failed to find session for User", "user", user.ID, "error", err)
+		response.WriteErrorResponse(w, 403, err)
+		return
+	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_id",
-		Value:    sessionId.String(),
+		Value:    sessionId,
 		SameSite: http.SameSiteStrictMode,
 		MaxAge:   86400 * 7,
 		HttpOnly: true,

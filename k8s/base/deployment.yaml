@@ -54,3 +54,5 @@ spec:
                 name: pixels-config
             - secretRef:
                 name: pixels-secrets
+            - secretRef:
+                name: jwt-secret

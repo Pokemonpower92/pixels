@@ -4,6 +4,10 @@ import (
 	"os"
 )
 
+func PrivateKeyPem() string {
+	return os.Getenv("PRIVATE_KEY_PEM")
+}
+
 type DBConfig struct {
 	Host     string
 	User     string

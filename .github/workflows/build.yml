@@ -123,6 +123,13 @@ jobs:
             chmod +x /tmp/argocd
             sudo mv /tmp/argocd /usr/local/bin/argocd
           fi
+      - name: Create JWT Secret
+        run: |
+          kubectl create secret generic jwt-secret \
+            --from-literal=PRIVATE_KEY_PEM="${{ secrets.PRIVATE_KEY_PEM }}" \
+            -n pixels-staging \
+            --dry-run=client -o yaml | kubectl apply -f -
+          echo "✅ JWT secret created/updated"
       - name: Sync and verify deployment
         run: |
           argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure

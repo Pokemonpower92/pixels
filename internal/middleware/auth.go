@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/pokemonpower92/pixels/internal/logger"
 	"github.com/pokemonpower92/pixels/internal/response"
 	"github.com/pokemonpower92/pixels/internal/session"
@@ -22,7 +21,7 @@ func Auth(sessionizer session.Sessionizer) Middleware {
 				response.WriteErrorResponse(w, 401, err)
 				return
 			}
-			ok, userID := sessionizer.FindSession(uuid.MustParse(cookie.Value))
+			userID, ok := sessionizer.FindSession(cookie.Value)
 			if !ok {
 				l.Info("Invalid session", "session_id", cookie.Value, "error", err)
 				response.WriteErrorResponse(w, 401, errors.New("Invalid Session"))
