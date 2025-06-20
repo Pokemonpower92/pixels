@@ -1,11 +1,10 @@
-package jwt
+package auth
 
 import (
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -20,17 +19,11 @@ type JwtManager struct {
 	PrivateKey *ecdsa.PrivateKey
 }
 
-func GetPrivateKey() (*ecdsa.PrivateKey, error) {
-	privateKeyPEM := os.Getenv("JWT_PRIVATE_KEY")
-	if privateKeyPEM == "" {
-		return nil, fmt.Errorf("JWT_PRIVATE_KEY environment variable is required")
-	}
-
+func GetPrivateKey(privateKeyPEM string) (*ecdsa.PrivateKey, error) {
 	block, _ := pem.Decode([]byte(privateKeyPEM))
 	if block == nil {
 		return nil, fmt.Errorf("failed to parse PEM block containing the private key")
 	}
-
 	return x509.ParseECPrivateKey(block.Bytes)
 }
 

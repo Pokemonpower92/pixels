@@ -2,8 +2,9 @@ SERVICE_NAME ?= api
 GO=go
 GOFLAGS=-mod=vendor
 BIN_DIR=bin
+COVERAGE_DIR=coverage
 
-.PHONY: build run test clean dev build-service deploy-staging deploy-production teardown-staging teardown-production k8s-status k8s-check-env k8s-create-namespaces k8s-create-secrets
+.PHONY: build run test test-verbose test-short test-coverage test-coverage-html clean build-service k8s-status help
 
 # Build the service
 build:
@@ -13,27 +14,42 @@ build:
 run:
 	$(GO) run ./cmd/$(SERVICE_NAME)
 
-# Run tests
+# Run tests with clean output (only shows failures and summary)
 test:
+	@echo "🧪 Running tests..."
+	@$(GO) test ./... -count=1
+
+# Run tests with verbose output (original behavior)
+test-verbose:
 	$(GO) test -v ./...
+
+# Run tests with short output (skip long-running tests)
+test-short:
+	@echo "🧪 Running short tests..."
+	@$(GO) test -short ./...
+
+# Run tests with coverage
+test-coverage:
+	@echo "🧪 Running tests with coverage..."
+	@$(GO) test -cover ./...
+
+# Run tests with coverage report
+test-coverage-html:
+	@echo "🧪 Generating coverage report..."
+	@$(GO) test -coverprofile=$(COVERAGE_DIR)/coverage.out ./...
+	@$(GO) tool cover -html=$(COVERAGE_DIR)/coverage.out -o $(COVERAGE_DIR)/coverage.html
+	@echo "✅ Coverage report generated: $(COVERAGE_DIR)/coverage.html"
 
 # Clean build artifacts
 clean:
-	rm -rf $(BIN_DIR)
+	rm -f $(BIN_DIR)/*
+	rm -f $(COVERAGE_DIR)/*
 
 # Build for specific service
 build-service:
 	$(GO) build -o $(BIN_DIR)/$(SERVICE_NAME) ./cmd/$(SERVICE_NAME)
 
 # ==================== Kubernetes Commands ====================
-
-# Check required environment variables for K8s
-k8s-check-env:
-	@echo "Checking required environment variables..."
-	@test -n "$(GITHUB_USERNAME)" || (echo "❌ GITHUB_USERNAME is not set" && exit 1)
-	@test -n "$(GITHUB_PAT)" || (echo "❌ GITHUB_PAT is not set" && exit 1)
-	@test -n "$(GITHUB_EMAIL)" || (echo "❌ GITHUB_EMAIL is not set" && exit 1)
-	@echo "✅ All required environment variables are set"
 
 # Show K8s cluster status
 k8s-status:
@@ -55,7 +71,11 @@ help:
 	@echo ""
 	@echo "🔨 Development:"
 	@echo "   build              - Build the service"
-	@echo "   test               - Run tests"
+	@echo "   test               - Run tests (clean output)"
+	@echo "   test-verbose       - Run tests with verbose output"
+	@echo "   test-short         - Run quick tests only"
+	@echo "   test-coverage      - Run tests with coverage"
+	@echo "   test-coverage-html - Generate HTML coverage report"
 	@echo "   clean              - Clean build artifacts"
 	@echo ""
 	@echo "☸️  Kubernetes:"

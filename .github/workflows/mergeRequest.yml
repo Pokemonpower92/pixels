@@ -1,0 +1,110 @@
+name: MergeRequest Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "cmd/**"
+      - "internal/**"
+      - "go.mod"
+      - "go.sum"
+      - "Makefile"
+
+permissions:
+  contents: read
+  pull-requests: write
+  pages: write
+  id-token: write
+
+jobs:
+  test-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Create coverage directory
+        run: mkdir -p coverage
+
+      - name: Run tests with coverage
+        run: make test-coverage-html
+
+      - name: Upload coverage report as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report-${{ github.event.pull_request.number }}
+          path: coverage/
+          retention-days: 30
+
+      - name: Generate coverage summary
+        id: coverage-summary
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}')
+          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+          echo "Coverage: $COVERAGE"
+
+      - name: Comment PR with coverage report
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const coverage = '${{ steps.coverage-summary.outputs.coverage }}';
+            const prNumber = context.payload.pull_request.number;
+            const runId = context.runId;
+            const repo = context.repo;
+            
+            const body = `## 🧪 Test Coverage Report
+            
+            **Total Coverage: \`${coverage}\`**
+            
+            📊 [View detailed coverage report](https://github.com/${repo.owner}/${repo.repo}/actions/runs/${runId})
+            
+            > Download the coverage report artifact from the GitHub Actions run to view the detailed HTML report.
+            
+            ---
+            <sub>Coverage report generated for commit ${context.sha.substring(0, 7)}</sub>`;
+
+            // Find existing coverage comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: repo.owner,
+              repo: repo.repo,
+              issue_number: prNumber,
+            });
+
+            const existingComment = comments.find(comment => 
+              comment.user.login === 'github-actions[bot]' && 
+              comment.body.includes('🧪 Test Coverage Report')
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: repo.owner,
+                repo: repo.repo,
+                comment_id: existingComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: prNumber,
+                body: body
+              });
+            }
