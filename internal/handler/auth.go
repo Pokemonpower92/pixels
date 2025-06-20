@@ -92,7 +92,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request, l *slog.Logg
 	}
 	user, err := h.repo.Get(req.UserName)
 	if err != nil {
-		l.Error("Error getting User", "user", req.UserName, "error", err)
+		l.Error("Error getting User", "error", err)
 		response.WriteErrorResponse(w, 404, err)
 		return
 	}
