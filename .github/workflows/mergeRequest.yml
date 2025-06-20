@@ -52,7 +52,7 @@ jobs:
       - name: Generate coverage summary
         id: coverage-summary
         run: |
-          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}')
+          COVERAGE=$(go tool cover -func=coverage/coverage.out | grep total | awk '{print $3}')
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
           echo "Coverage: $COVERAGE"
 
