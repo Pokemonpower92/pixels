@@ -13,6 +13,7 @@ import (
 	"github.com/pokemonpower92/pixels/internal/session"
 )
 
+// Start is the entrypoint for the api.
 func Start() {
 	r := router.NewRouter()
 	c := config.NewPostgresConfig()
