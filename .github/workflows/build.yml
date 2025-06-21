@@ -98,6 +98,7 @@ jobs:
         run: |
           # Submit workflow for this service
           argo submit --from workflowtemplate/pixels-deployment-pipeline \
+            --namespace argo \
             --parameter service-name=${{ matrix.service }} \
             --parameter image-tag=${{ needs.detect-changes.outputs.short_sha }} \
             --parameter environment=staging \
