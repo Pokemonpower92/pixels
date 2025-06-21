@@ -76,8 +76,8 @@ jobs:
             ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:latest
           build-args: |
             SERVICE_NAME=${{ matrix.service }}
-            
-  deploy-staging:
+
+  trigger-deployment-workflow:
     needs: [detect-changes, build-and-push]
     runs-on: [self-hosted, k3s, pixels]
     if: github.ref == 'refs/heads/main'
@@ -85,56 +85,24 @@ jobs:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.matrix).service }}
     steps:
-      - name: Install Argo CD CLI
+      - name: Install Argo CLI
         run: |
-          if ! command -v argocd &> /dev/null; then
-            curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-            chmod +x /tmp/argocd
-            sudo mv /tmp/argocd /usr/local/bin/argocd
+          if ! command -v argo &> /dev/null; then
+            curl -sLO https://github.com/argoproj/argo-workflows/releases/download/v3.5.2/argo-linux-amd64.gz
+            gunzip argo-linux-amd64.gz
+            chmod +x argo-linux-amd64
+            sudo mv argo-linux-amd64 /usr/local/bin/argo
           fi
-      - name: Deploy service to staging via Argo CD
-        run: |
-          argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
-          if [ "${{ matrix.service }}" = "api" ]; then
-            echo "Setting pixels image override..."
-            argocd app set pixels-staging --kustomize-image pixels=ghcr.io/pokemonpower92/pixels/api:${{ needs.detect-changes.outputs.short_sha }}
-          elif [ "${{ matrix.service }}" = "migrate" ]; then
-            echo "Setting migrate image override..."
-            argocd app set pixels-staging --kustomize-image migrate=ghcr.io/pokemonpower92/pixels/migrate:${{ needs.detect-changes.outputs.short_sha }}
-          fi
-          echo "✅ Updated ${{ matrix.service }} to ${{ needs.detect-changes.outputs.short_sha }}"
 
-  sync-deployment:
-    needs: [detect-changes, deploy-staging]
-    runs-on: [self-hosted, k3s, pixels]
-    if: github.ref == 'refs/heads/main' && always() && !cancelled()
-    steps:
-      - name: Install kubectl
+      - name: Trigger Argo Workflow
         run: |
-          if ! command -v kubectl &> /dev/null; then
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            sudo mv kubectl /usr/local/bin/
-          fi
-      - name: Install Argo CD CLI
-        run: |
-          if ! command -v argocd &> /dev/null; then
-            curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-            chmod +x /tmp/argocd
-            sudo mv /tmp/argocd /usr/local/bin/argocd
-          fi
-      - name: Create JWT Secret
-        run: |
-          kubectl create secret generic jwt-secret \
-            --from-literal=PRIVATE_KEY_PEM="${{ secrets.PRIVATE_KEY_PEM }}" \
-            -n pixels-staging \
-            --dry-run=client -o yaml | kubectl apply -f -
-          echo "✅ JWT secret created/updated"
-      - name: Sync and verify deployment
-        run: |
-          argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
-          kubectl delete job pixels-migration -n pixels-staging --ignore-not-found=true
-          argocd app sync pixels-staging --timeout 300
-          argocd app wait pixels-staging --timeout 600
-          argocd app get pixels-staging --output json | jq -r '.status.health.status' | grep -q "Healthy"
-          echo "✅ Deployment successful: ${{ needs.detect-changes.outputs.short_sha }}"
+          # Submit workflow for this service
+          argo submit --from workflowtemplate/pixels-deployment-pipeline \
+            --parameter service-name=${{ matrix.service }} \
+            --parameter image-tag=${{ needs.detect-changes.outputs.short_sha }} \
+            --parameter environment=staging \
+            --parameter repo-url=https://github.com/${{ github.repository }}.git \
+            --wait \
+            --log
+          
+          echo "✅ Deployment workflow completed for ${{ matrix.service }}:${{ needs.detect-changes.outputs.short_sha }}"
