@@ -4,7 +4,7 @@ GOFLAGS=-mod=vendor
 BIN_DIR=bin
 COVERAGE_DIR=coverage
 
-.PHONY: build run test test-verbose test-short test-coverage test-coverage-html clean build-service k8s-status help
+.PHONY: build run test test-e2e test-verbose test-short test-coverage test-coverage-html clean build-service k8s-status help
 
 # Build the service
 build:
@@ -18,6 +18,9 @@ run:
 test:
 	@echo "🧪 Running tests..."
 	@$(GO) test ./... -count=1
+
+test-e2e:
+	@$(GO) test ./internal/tests -tags=e2e -count=1
 
 # Run tests with verbose output (original behavior)
 test-verbose:
