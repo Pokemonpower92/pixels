@@ -40,17 +40,9 @@ type ImageRepository struct {
 }
 
 func NewImageRepository(
-	pgConfig *config.DBConfig,
+	client *pgxpool.Pool,
 	ctx context.Context,
 ) (*ImageRepository, error) {
-	connString := GetConnectionString(pgConfig)
-	client, err := pgxpool.New(
-		context.Background(),
-		connString,
-	)
-	if err != nil {
-		return nil, err
-	}
 	q := sqlc.New(client)
 	return &ImageRepository{
 		client: client,

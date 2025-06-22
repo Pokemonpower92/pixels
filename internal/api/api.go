@@ -6,6 +6,7 @@ import (
 
 	"github.com/pokemonpower92/pixels/config"
 	"github.com/pokemonpower92/pixels/internal/auth"
+	"github.com/pokemonpower92/pixels/internal/database"
 	"github.com/pokemonpower92/pixels/internal/handler"
 	"github.com/pokemonpower92/pixels/internal/repository"
 	"github.com/pokemonpower92/pixels/internal/router"
@@ -18,7 +19,11 @@ func Start() {
 	r := router.NewRouter()
 	c := config.NewPostgresConfig()
 	ctx := context.Background()
-	imageRepo, err := repository.NewImageRepository(c, ctx)
+	db, err := database.NewDatabase(c, ctx)
+	if err != nil {
+		panic(err)
+	}
+	imageRepo, err := repository.NewImageRepository(db, ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +44,7 @@ func Start() {
 	r.RegisterProtectedRoute("GET /images", sessionizer, h.GetImages)
 	r.RegisterProtectedRoute("POST /images", sessionizer, h.CreateImage)
 
-	userRepo, err := repository.NewUserRepository(c, ctx)
+	userRepo, err := repository.NewUserRepository(db, ctx)
 	if err != nil {
 		panic(err)
 	}
