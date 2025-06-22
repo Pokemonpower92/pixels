@@ -188,19 +188,6 @@ jobs:
                     git clone \$REPO_URL .
                     git checkout \$COMMIT_SHA
                     
-                    # Wait for the API to be ready before running tests
-                    echo "⏳ Waiting for API to be ready..."
-                    timeout 120 bash -c 'until curl -f \$API_URL/healthcheck > /dev/null 2>&1; do 
-                      echo "Waiting for API at \$API_URL..."; sleep 5; 
-                    done' || {
-                      echo "❌ API at \$API_URL failed to become ready within timeout"
-                      echo "🔍 Debug info:"
-                      curl -v \$API_URL/healthcheck || true
-                      exit 1
-                    }
-                    
-                    echo "✅ API is ready, starting e2e tests..."
-                    
                     # Run your e2e test suite
                     run_test.sh
                   resources:
