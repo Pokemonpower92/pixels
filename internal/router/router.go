@@ -53,7 +53,6 @@ func (r *Router) RegisterUnprotectedRoute(
 	handlerFunc := makeHttpHandler(handler)
 	stdMiddleware := middleware.New(
 		middleware.Context(),
-		middleware.Timer(),
 	)
 	handlerFunc = stdMiddleware.Use(handlerFunc)
 	r.Mux.HandleFunc(path, handlerFunc.ServeHTTP)
