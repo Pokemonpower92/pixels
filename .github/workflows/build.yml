@@ -78,15 +78,13 @@ jobs:
             SERVICE_NAME=${{ matrix.service }}
             
   deploy-staging:
+    needs: [detect-changes, build-and-push]
+    runs-on: [self-hosted, k3s, pixels]
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.matrix).service }}
     steps:
-      - name: Create required secrets before deployment
-        run: |
-          kubectl create secret generic jwt-secret \
-            --from-literal=PRIVATE_KEY_PEM="${{ secrets.PRIVATE_KEY_PEM }}" \
-            -n pixels-staging \
-            --dry-run=client -o yaml | kubectl apply -f -
-          echo "✅ JWT secret created/updated"
-          
       - name: Deploy service to staging via Argo CD
         run: |
           argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
@@ -100,12 +98,20 @@ jobs:
             argocd app set pixels-staging --kustomize-image migrate=ghcr.io/pokemonpower92/pixels/migrate:${{ needs.detect-changes.outputs.short_sha }}
           fi
           echo "✅ Updated ${{ matrix.service }} to ${{ needs.detect-changes.outputs.short_sha }}"
-          
+
   sync-deployment:
     needs: [detect-changes, deploy-staging]
     runs-on: [self-hosted, k3s, pixels]
     if: github.ref == 'refs/heads/main' && always() && !cancelled()
     steps:
+      - name: Create JWT Secret
+        run: |
+          kubectl create secret generic jwt-secret \
+            --from-literal=PRIVATE_KEY_PEM="${{ secrets.PRIVATE_KEY_PEM }}" \
+            -n pixels-staging \
+            --dry-run=client -o yaml | kubectl apply -f -
+          echo "✅ JWT secret created/updated"
+          
       - name: Sync and verify deployment
         run: |
           argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
