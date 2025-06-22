@@ -4,26 +4,13 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/pokemonpower92/pixels/config"
 	sqlc "github.com/pokemonpower92/pixels/internal/sqlc/generated"
 )
-
-// Connect to the database defined in the given config
-func GetConnectionString(config *config.DBConfig) string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
-		config.User,
-		config.Password,
-		config.Host,
-		config.Port,
-		config.DBName,
-	)
-}
 
 // ImageModeler is an interface for sqlc queries
 type ImageModeler interface {
