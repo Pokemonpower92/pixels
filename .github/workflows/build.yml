@@ -77,28 +77,28 @@ jobs:
           build-args: |
             SERVICE_NAME=${{ matrix.service }}
             
-deploy-staging:
-  steps:
-    - name: Create required secrets before deployment
-      run: |
-        kubectl create secret generic jwt-secret \
-          --from-literal=PRIVATE_KEY_PEM="${{ secrets.PRIVATE_KEY_PEM }}" \
-          -n pixels-staging \
-          --dry-run=client -o yaml | kubectl apply -f -
-        echo "✅ JWT secret created/updated"
-        
-    - name: Deploy service to staging via Argo CD
-      run: |
-        argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
-        if [ "${{ matrix.service }}" = "api" ]; then
-          echo "Setting pixels image override..."
-          argocd app set pixels-staging --kustomize-image pixels=ghcr.io/pokemonpower92/pixels/api:${{ needs.detect-changes.outputs.short_sha }}
-        elif [ "${{ matrix.service }}" = "migrate" ]; then
-          echo "Setting migrate image override..."
-          argocd app set pixels-staging --kustomize-image migrate=ghcr.io/pokemonpower92/pixels/migrate:${{ needs.detect-changes.outputs.short_sha }}
-        fi
-        echo "✅ Updated ${{ matrix.service }} to ${{ needs.detect-changes.outputs.short_sha }}"
-        
+  deploy-staging:
+    steps:
+      - name: Create required secrets before deployment
+        run: |
+          kubectl create secret generic jwt-secret \
+            --from-literal=PRIVATE_KEY_PEM="${{ secrets.PRIVATE_KEY_PEM }}" \
+            -n pixels-staging \
+            --dry-run=client -o yaml | kubectl apply -f -
+          echo "✅ JWT secret created/updated"
+          
+      - name: Deploy service to staging via Argo CD
+        run: |
+          argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
+          if [ "${{ matrix.service }}" = "api" ]; then
+            echo "Setting pixels image override..."
+            argocd app set pixels-staging --kustomize-image pixels=ghcr.io/pokemonpower92/pixels/api:${{ needs.detect-changes.outputs.short_sha }}
+          elif [ "${{ matrix.service }}" = "migrate" ]; then
+            echo "Setting migrate image override..."
+            argocd app set pixels-staging --kustomize-image migrate=ghcr.io/pokemonpower92/pixels/migrate:${{ needs.detect-changes.outputs.short_sha }}
+          fi
+          echo "✅ Updated ${{ matrix.service }} to ${{ needs.detect-changes.outputs.short_sha }}"
+          
   sync-deployment:
     needs: [detect-changes, deploy-staging]
     runs-on: [self-hosted, k3s, pixels]
