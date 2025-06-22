@@ -85,26 +85,19 @@ jobs:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.matrix).service }}
     steps:
-      - name: Install Argo CD CLI
-        run: |
-          if ! command -v argocd &> /dev/null; then
-            curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-            chmod +x /tmp/argocd
-            sudo mv /tmp/argocd /usr/local/bin/argocd
-          fi
       - name: Deploy service to staging via Argo CD
         run: |
           argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
           if [ "${{ matrix.service }}" = "api" ]; then
             echo "Setting pixels image override..."
-            argocd app set pixels-staging --kustomize-image pixels=ghcr.io/pokemonpower92/pixels/api:${{ needs.detect-changes.outputs.short_sha }}
+            argocd app set pixels-staging --kustomize-image pixels=ghcr.io/pokemonpower92/homelab/api:${{ needs.detect-changes.outputs.short_sha }}
           elif [ "${{ matrix.service }}" = "migrate" ]; then
             echo "Setting migrate image override..."
-            argocd app set pixels-staging --kustomize-image migrate=ghcr.io/pokemonpower92/pixels/migrate:${{ needs.detect-changes.outputs.short_sha }}
+            argocd app set pixels-staging --kustomize-image migrate=ghcr.io/pokemonpower92/homelab/migrate:${{ needs.detect-changes.outputs.short_sha }}
           fi
           echo "✅ Updated ${{ matrix.service }} to ${{ needs.detect-changes.outputs.short_sha }}"
 
-sync-deployment:
+  sync-deployment:
     needs: [detect-changes, deploy-staging]
     runs-on: [self-hosted, k3s, pixels]
     if: github.ref == 'refs/heads/main' && always() && !cancelled()
@@ -162,7 +155,7 @@ sync-deployment:
                 restartPolicy: Never
                 containers:
                 - name: e2e-tests
-                  image: ghcr.io/pokemonpower92/test-runner:go
+                  image: ghcr.io/pokemonpower92/homelab/runner-go:latest
                   workingDir: /workspace
                   env:
                   - name: TARGET_ENV
@@ -225,7 +218,7 @@ sync-deployment:
         run: |
           echo "🚨 E2E tests failed - performing automatic rollback and revert"
           
-          # Tools are already available in the runner!
+          # Tools are pre-installed in the custom runner image! 🎉
           echo "⚡ Step 1: ArgoCD rollback (immediate)"
           argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
           argocd app rollback pixels-staging
@@ -247,3 +240,30 @@ sync-deployment:
           echo "📝 Git commit reverted to keep history clean"
           echo "📋 Check test logs above for failure details"
           echo "🔗 ArgoCD UI: kubectl port-forward svc/argocd-server -n argocd 8080:443"
+
+  deployment-summary:
+    needs: [detect-changes, run-e2e-tests]
+    runs-on: [self-hosted, k3s, pixels]
+    if: always()
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "🎯 DEPLOYMENT SUMMARY"
+          echo "📝 Commit: ${{ needs.detect-changes.outputs.short_sha }}"
+          echo "🏷️  Services: ${{ join(fromJson(needs.detect-changes.outputs.matrix).service, ', ') }}"
+          
+          if [[ "${{ needs.run-e2e-tests.result }}" == "success" ]]; then
+            echo "✅ DEPLOYMENT SUCCESSFUL!"
+            echo "🎉 All services deployed and e2e tests passed"
+            echo "🚀 Deployment ${{ needs.detect-changes.outputs.short_sha }} is live in staging"
+          else
+            echo "❌ DEPLOYMENT FAILED AND ROLLED BACK"
+            echo "🔄 Application reverted to previous working version"
+            echo "💡 Check e2e test failure logs above"
+          fi
+          
+          echo ""
+          echo "🔗 Useful commands:"
+          echo "   kubectl get pods -n pixels-staging"
+          echo "   kubectl port-forward svc/argocd-server -n argocd 8080:443"
+          echo "   argocd app get pixels-staging"
