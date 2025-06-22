@@ -104,25 +104,11 @@ jobs:
           fi
           echo "✅ Updated ${{ matrix.service }} to ${{ needs.detect-changes.outputs.short_sha }}"
 
-  sync-deployment:
+sync-deployment:
     needs: [detect-changes, deploy-staging]
     runs-on: [self-hosted, k3s, pixels]
     if: github.ref == 'refs/heads/main' && always() && !cancelled()
     steps:
-      - name: Install kubectl
-        run: |
-          if ! command -v kubectl &> /dev/null; then
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            sudo mv kubectl /usr/local/bin/
-          fi
-      - name: Install Argo CD CLI
-        run: |
-          if ! command -v argocd &> /dev/null; then
-            curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-            chmod +x /tmp/argocd
-            sudo mv /tmp/argocd /usr/local/bin/argocd
-          fi
       - name: Create JWT Secret
         run: |
           kubectl create secret generic jwt-secret \
@@ -130,6 +116,7 @@ jobs:
             -n pixels-staging \
             --dry-run=client -o yaml | kubectl apply -f -
           echo "✅ JWT secret created/updated"
+          
       - name: Sync and verify deployment
         run: |
           argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
@@ -157,7 +144,7 @@ jobs:
           # Clean up any existing test jobs
           kubectl delete job pixels-e2e-test -n pixels-staging --ignore-not-found=true
           
-          # Create and run the test job
+          # Create and run the test job (using your focused test-runner image)
           cat <<EOF | kubectl apply -f -
           apiVersion: batch/v1
           kind: Job
@@ -238,7 +225,7 @@ jobs:
         run: |
           echo "🚨 E2E tests failed - performing automatic rollback and revert"
           
-          # 1. Immediate ArgoCD rollback for fast recovery
+          # Tools are already available in the runner!
           echo "⚡ Step 1: ArgoCD rollback (immediate)"
           argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
           argocd app rollback pixels-staging
@@ -260,30 +247,3 @@ jobs:
           echo "📝 Git commit reverted to keep history clean"
           echo "📋 Check test logs above for failure details"
           echo "🔗 ArgoCD UI: kubectl port-forward svc/argocd-server -n argocd 8080:443"
-
-  deployment-summary:
-    needs: [detect-changes, run-e2e-tests]
-    runs-on: [self-hosted, k3s, pixels]
-    if: always()
-    steps:
-      - name: Deployment Summary
-        run: |
-          echo "🎯 DEPLOYMENT SUMMARY"
-          echo "📝 Commit: ${{ needs.detect-changes.outputs.short_sha }}"
-          echo "🏷️  Services: ${{ join(fromJson(needs.detect-changes.outputs.matrix).service, ', ') }}"
-          
-          if [[ "${{ needs.run-e2e-tests.result }}" == "success" ]]; then
-            echo "✅ DEPLOYMENT SUCCESSFUL!"
-            echo "🎉 All services deployed and e2e tests passed"
-            echo "🚀 Deployment ${{ needs.detect-changes.outputs.short_sha }} is live in staging"
-          else
-            echo "❌ DEPLOYMENT FAILED AND ROLLED BACK"
-            echo "🔄 Application reverted to previous working version"
-            echo "💡 Check e2e test failure logs above"
-          fi
-          
-          echo ""
-          echo "🔗 Useful commands:"
-          echo "   kubectl get pods -n pixels-staging"
-          echo "   kubectl port-forward svc/argocd-server -n argocd 8080:443"
-          echo "   argocd app get pixels-staging"
