@@ -22,6 +22,9 @@ test:
 test-e2e:
 	@$(GO) test ./internal/tests -tags=e2e -count=1
 
+test-integration:
+	@$(GO) test ./internal/tests -tags=integration -count=1
+
 # Run tests with verbose output (original behavior)
 test-verbose:
 	$(GO) test -v ./...
