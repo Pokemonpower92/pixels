@@ -8,7 +8,6 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/pokemonpower92/pixels/config"
 	sqlc "github.com/pokemonpower92/pixels/internal/sqlc/generated"
 )
 
@@ -26,17 +25,9 @@ type UserRepository struct {
 }
 
 func NewUserRepository(
-	pgConfig *config.DBConfig,
+	client *pgxpool.Pool,
 	ctx context.Context,
 ) (*UserRepository, error) {
-	connString := GetConnectionString(pgConfig)
-	client, err := pgxpool.New(
-		context.Background(),
-		connString,
-	)
-	if err != nil {
-		return nil, err
-	}
 	q := sqlc.New(client)
 	return &UserRepository{
 		client: client,

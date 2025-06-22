@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -8,22 +9,14 @@ func PrivateKeyPem() string {
 	return os.Getenv("PRIVATE_KEY_PEM")
 }
 
-type DBConfig struct {
-	Host     string
-	User     string
-	Password string
-	Port     string
-	DBName   string
-}
-
-func NewPostgresConfig() *DBConfig {
-	return &DBConfig{
-		Host:     os.Getenv("POSTGRES_HOST"),
-		User:     os.Getenv("POSTGRES_USER"),
-		Password: os.Getenv("POSTGRES_PASSWORD"),
-		Port:     os.Getenv("POSTGRES_PORT"),
-		DBName:   os.Getenv("POSTGRES_DB"),
-	}
+func ConnString() string {
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_PORT"),
+		os.Getenv("POSTGRES_DB"),
+	)
 }
 
 type ResolutionConfig struct {
