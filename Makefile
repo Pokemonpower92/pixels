@@ -19,11 +19,8 @@ test:
 	@echo "🧪 Running tests..."
 	@$(GO) test ./... -count=1
 
-test-e2e:
-	@$(GO) test ./internal/tests -tags=e2e -count=1
-
 test-integration:
-	@$(GO) test ./internal/tests -tags=integration -count=1
+	@$(GO) test ./internal/handler -tags=integration -count=1 -v
 
 # Run tests with verbose output (original behavior)
 test-verbose:
@@ -82,6 +79,7 @@ help:
 	@echo "   test-short         - Run quick tests only"
 	@echo "   test-coverage      - Run tests with coverage"
 	@echo "   test-coverage-html - Generate HTML coverage report"
+	@echo "   test-integration   - Run integration tests"
 	@echo "   clean              - Clean build artifacts"
 	@echo ""
 	@echo "☸️  Kubernetes:"
