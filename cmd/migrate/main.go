@@ -17,7 +17,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if err := database.RunMigration(config); err != nil {
+	if err := database.RunMigration(config, "internal/sqlc/migrations/postgres"); err != nil {
 		panic(err)
 	} else {
 		log.Printf("Migration succeeded.")

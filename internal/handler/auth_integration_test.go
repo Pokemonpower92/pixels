@@ -9,11 +9,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pokemonpower92/pixels/config"
 	"github.com/pokemonpower92/pixels/internal/auth"
-	"github.com/pokemonpower92/pixels/internal/database"
 	"github.com/pokemonpower92/pixels/internal/repository"
 	"github.com/pokemonpower92/pixels/internal/router"
 	"github.com/pokemonpower92/pixels/internal/session"
@@ -58,14 +56,6 @@ func TestAuthIntegration(t *testing.T) {
 			t.Logf("failed to terminate container: %s", err)
 		}
 	}()
-	config, err := pgx.ParseConfig(connStr)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := database.RunMigration(config); err != nil {
-		t.Fatal(err)
-	}
-
 	db, err := pgxpool.New(ctx, connStr)
 	server := setupTestServer(ctx, db)
 	defer server.Close()

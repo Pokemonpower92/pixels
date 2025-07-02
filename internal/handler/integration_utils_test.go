@@ -36,7 +36,7 @@ func SetupTestContainer(ctx context.Context) (*postgres.PostgresContainer, strin
 	if err != nil {
 		return container, "", err
 	}
-	if err := database.RunMigration(config); err != nil {
+	if err := database.RunMigration(config, "../sqlc/migrations/postgres"); err != nil {
 		return container, "", err
 	}
 	return container, connStr, nil
