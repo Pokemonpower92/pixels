@@ -6,7 +6,7 @@ on:
 
 jobs:
   smoke:
-    runs-on: [self-hosted, k3s, common]
+    runs-on: [self-hosted, k3s, pixels]
     strategy:
       fail-fast: false
       matrix:
