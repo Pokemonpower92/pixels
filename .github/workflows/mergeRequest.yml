@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - ".github/workflows/**"
       - "cmd/**"
       - "internal/**"
       - "go.mod"
@@ -19,7 +20,7 @@ permissions:
 
 jobs:
   test-coverage:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, k3s, pixels]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
