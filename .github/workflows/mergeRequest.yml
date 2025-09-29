@@ -1,100 +1,35 @@
-name: Test Coverage
+name: Self-Hosted Runner Test
 
 on:
   pull_request:
-    branches:
-      - main
-    paths:
-      - "cmd/**"
-      - "internal/**"
-      - "go.mod"
-      - "go.sum"
-      - "Makefile"
-
-permissions:
-  contents: read
-  pull-requests: write
-  pages: write
-  id-token: write
+    branches: [ main ]
 
 jobs:
-  test-coverage:
-    runs-on: ubuntu-latest
+  smoke:
+    runs-on: [self-hosted, k3s, common]
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]  # run 3 jobs in parallel to test scaling
     steps:
-      - name: Checkout code
+      - name: Show runner context
+        run: |
+          echo "Runner name: $RUNNER_NAME"
+          echo "Runner os: $RUNNER_OS"
+          echo "Job shard: ${{ matrix.shard }}"
+          echo "Labels: $RUNNER_LABELS"
+
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version-file: 'go.mod'
-
-      - name: Create coverage directory
-        run: mkdir -p coverage
-
-      - name: Run tests with coverage
-        run: make test-coverage-html
-
-      - name: Upload coverage report as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report-${{ github.event.pull_request.number }}
-          path: coverage/
-          retention-days: 30
-
-      - name: Generate coverage summary
-        id: coverage-summary
+      - name: Basic commands
         run: |
-          COVERAGE=$(go tool cover -func=coverage/coverage.out | grep total | awk '{print $3}')
-          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
-          echo "Coverage: $COVERAGE"
+          uname -a
+          which docker || true
+          which kubectl || true
 
-      - name: Comment PR with coverage report
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const coverage = '${{ steps.coverage-summary.outputs.coverage }}';
-            const prNumber = context.payload.pull_request.number;
-            const runId = context.runId;
-            const repo = context.repo;
-            
-            const body = `## 🧪 Test Coverage Report
-            
-            **Total Coverage: \`${coverage}\`**
-            
-            📊 [View detailed coverage report](https://github.com/${repo.owner}/${repo.repo}/actions/runs/${runId})
-            
-            > Download the coverage report artifact from the GitHub Actions run to view the detailed HTML report.
-            
-            ---
-            <sub>Coverage report generated for commit ${context.sha.substring(0, 7)}</sub>`;
-
-            // Find existing coverage comment
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: repo.owner,
-              repo: repo.repo,
-              issue_number: prNumber,
-            });
-
-            const existingComment = comments.find(comment => 
-              comment.user.login === 'github-actions[bot]' && 
-              comment.body.includes('🧪 Test Coverage Report')
-            );
-
-            if (existingComment) {
-              // Update existing comment
-              await github.rest.issues.updateComment({
-                owner: repo.owner,
-                repo: repo.repo,
-                comment_id: existingComment.id,
-                body: body
-              });
-            } else {
-              // Create new comment
-              await github.rest.issues.createComment({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: prNumber,
-                body: body
-              });
-            }
+      - name: Simulate work
+        run: |
+          echo "Starting shard ${{ matrix.shard }}..."
+          sleep $(( (RANDOM % 10) + 5 ))
+          echo "Done shard ${{ matrix.shard }}"
