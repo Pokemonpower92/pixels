@@ -103,8 +103,9 @@ jobs:
       - name: Set images to built SHA
         working-directory: k8s/overlays/staging
         run: |
-          kustomize edit set image pixels=ghcr.io/${{ github.repository }}/api:${{ needs.detect-changes.outputs.short_sha }}
-          kustomize edit set image migrate=ghcr.io/${{ github.repository }}/migrate:${{ needs.detect-changes.outputs.short_sha }}
+          REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
+          kustomize edit set image pixels=ghcr.io/${REPO}/api:${{ needs.detect-changes.outputs.short_sha }}
+          kustomize edit set image migrate=ghcr.io/${REPO}/migrate:${{ needs.detect-changes.outputs.short_sha }}
 
       - name: Recreate migration job if exists
         env:
