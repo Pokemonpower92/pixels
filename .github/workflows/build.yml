@@ -74,7 +74,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-           - name: Ensure namespace exists
+      - name: Install kubectl and kustomize
+        run: |
+          curl -sSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$(curl -sSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x /usr/local/bin/kubectl
+          curl -sSL "https://github.com/kubernetes-sigs/kustomize/releases/latest/download/kustomize_linux_amd64.tar.gz" | tar xz
+          mv kustomize /usr/local/bin/kustomize
+
+      - name: Ensure namespace exists
         env:
           KUBECONFIG: /home/runner/.kube/config
         run: |
