@@ -8,7 +8,7 @@ on:
       - "cmd/**"
       - "internal/**"
       - ".github/workflows/**"
-      - "build/**"  
+      - "build/**"
 
 permissions:
   contents: write
@@ -31,10 +31,8 @@ jobs:
           echo "matrix={\"service\":$SERVICES}" >> $GITHUB_OUTPUT
       - name: Set short SHA
         id: set-sha
-        run: |
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
-          
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
   build-and-push:
     needs: detect-changes
     runs-on: ubuntu-latest
@@ -55,60 +53,78 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Set repository name
         id: repo
-        run: |
-          echo "repo=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+        run: echo "repo=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./build/Dockerfile  
+          file: ./build/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:${{ needs.detect-changes.outputs.short_sha }}
             ghcr.io/${{ steps.repo.outputs.repo }}/${{ matrix.service }}:latest
           build-args: |
             SERVICE_NAME=${{ matrix.service }}
-            
+
   deploy-staging:
     needs: [detect-changes, build-and-push]
     runs-on: [self-hosted, k3s, pixels]
     if: github.ref == 'refs/heads/main'
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.matrix).service }}
+    timeout-minutes: 30
     steps:
-      - name: Deploy service to staging via Argo CD
-        run: |
-          argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
-          if [ "${{ matrix.service }}" = "api" ]; then
-            echo "Setting pixels image override..."
-            argocd app unset pixels-staging --kustomize-image pixels
-            argocd app set pixels-staging --kustomize-image pixels=ghcr.io/pokemonpower92/pixels/api:${{ needs.detect-changes.outputs.short_sha }}
-          elif [ "${{ matrix.service }}" = "migrate" ]; then
-            echo "Setting migrate image override..."
-            argocd app unset pixels-staging --kustomize-image migrate
-            argocd app set pixels-staging --kustomize-image migrate=ghcr.io/pokemonpower92/pixels/migrate:${{ needs.detect-changes.outputs.short_sha }}
-          fi
-          echo "✅ Updated ${{ matrix.service }} to ${{ needs.detect-changes.outputs.short_sha }}"
+      - uses: actions/checkout@v4
 
-  sync-deployment:
-    needs: [detect-changes, deploy-staging]
-    runs-on: [self-hosted, k3s, pixels]
-    if: github.ref == 'refs/heads/main' && always() && !cancelled()
-    steps:
+      - name: Ensure namespace exists
+        env:
+          KUBECONFIG: /home/runner/.kube/config
+        run: |
+          kubectl get ns pixels-staging >/dev/null 2>&1 || kubectl create ns pixels-staging
+
+      - name: Create GHCR image pull secret
+        env:
+          KUBECONFIG: /home/runner/.kube/config
+        run: |
+          kubectl create secret docker-registry ghcr-secret \
+            --docker-server=ghcr.io \
+            --docker-username="${{ github.actor }}" \
+            --docker-password="${{ secrets.GITHUB_TOKEN }}" \
+            -n pixels-staging \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Create JWT Secret
+        if: ${{ secrets.PRIVATE_KEY_PEM != '' }}
+        env:
+          KUBECONFIG: /home/runner/.kube/config
         run: |
           kubectl create secret generic jwt-secret \
             --from-literal=PRIVATE_KEY_PEM="${{ secrets.PRIVATE_KEY_PEM }}" \
             -n pixels-staging \
             --dry-run=client -o yaml | kubectl apply -f -
-          echo "✅ JWT secret created/updated"
-          
-      - name: Sync and verify deployment
+
+      - name: Set images to built SHA
+        working-directory: k8s/overlays/staging
         run: |
-          argocd login argocd-server.argocd.svc.cluster.local:443 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
-          kubectl delete job pixels-migration -n pixels-staging --ignore-not-found=true
-          argocd app sync pixels-staging --timeout 300
-          argocd app wait pixels-staging --timeout 600
-          argocd app get pixels-staging --output json | jq -r '.status.health.status' | grep -q "Healthy"
-          echo "✅ Deployment successful: ${{ needs.detect-changes.outputs.short_sha }}"
+          kustomize edit set image pixels=ghcr.io/${{ github.repository }}/api:${{ needs.detect-changes.outputs.short_sha }}
+          kustomize edit set image migrate=ghcr.io/${{ github.repository }}/migrate:${{ needs.detect-changes.outputs.short_sha }}
+
+      - name: Recreate migration job if exists
+        env:
+          KUBECONFIG: /home/runner/.kube/config
+        run: kubectl -n pixels-staging delete job pixels-migration --ignore-not-found=true
+
+      - name: Apply Kustomize overlay
+        env:
+          KUBECONFIG: /home/runner/.kube/config
+        run: kubectl -n pixels-staging apply -k k8s/overlays/staging
+
+      - name: Wait for deployment rollout
+        env:
+          KUBECONFIG: /home/runner/.kube/config
+        run: kubectl -n pixels-staging rollout status deploy/pixels --timeout=300s
+
+      - name: Wait for migration job completion
+        env:
+          KUBECONFIG: /home/runner/.kube/config
+        run: |
+          kubectl -n pixels-staging wait --for=condition=complete job/pixels-migration --timeout=300s || \
+          (echo "migration job did not complete in time" && exit 1)
