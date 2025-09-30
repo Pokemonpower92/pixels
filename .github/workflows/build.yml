@@ -74,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Ensure namespace exists
+           - name: Ensure namespace exists
         env:
           KUBECONFIG: /home/runner/.kube/config
         run: |
@@ -92,7 +92,6 @@ jobs:
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Create JWT Secret
-        if: ${{ secrets.PRIVATE_KEY_PEM != '' }}
         env:
           KUBECONFIG: /home/runner/.kube/config
         run: |
